@@ -1,13 +1,8 @@
 #!/bin/bash
 echo "This is a script to create vcf files for imputation on the Sanger servers"
 
-# First liftover
-MYPATH=`pwd`
-echo $MYPATH
-
 # Paths
-dataPATH="/mnt/GREENWOOD_BACKUP/home/marie.forest/shareLink/PROJECTS/Ludmer_MAVAN/Genotype/2-25-2015/PLINK_FILES/"
-#dataPATH="ressources/data/"
+dataPATH="ressources/data/"
 refStrandPATH="ressources/strand/"
 resultsPATH="results/"
 plinkPATH="tools/plink/"
@@ -20,11 +15,11 @@ BCFTOOLS_EXEC=$bcftoolsPATH"bin/bcftools"
 RAYNER_EXEC=$refStrandPATH"update_build.sh"
 
 # Data file name
-STRANDFILE=$refStrandPATH"PsychArray_A-b37.strand"
+STRANDFILE=$refStrandPATH$2
 #DATAFILE=$dataPATH"MAVAN_PsychChip"
-
-DATASTEM="MAVAN_PsychChip_11Aug16_maf05"
-DATAFILE=$dataPATH"MAVAN_PsychChip"
+@arr = split(/./, $1);
+DATASTEM=$arr[0]
+DATAFILE=$dataPATH$1
 
 # Create binary file
 $PLINK_EXEC --file $DATAFILE  --make-bed --out $resultsPATH$DATASTEM"_binary"

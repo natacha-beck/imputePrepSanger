@@ -21,13 +21,6 @@ STRANDFILE=$refStrandPATH$2
 DATASTEM=$1
 DATAFILE=$dataPATH$1
 
-#Unzip a few files
-wget "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz"
-mv "human_g1k_v37.fasta.gz" "ressources/HRC_refSites/human_g1k_v37.fasta.gz"
-wget "ftp://ngs.sanger.ac.uk/production/hrc/HRC.r1/HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz" 
-mv "HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz" "ressources/HRC_refSites/HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz"
-gunzip "ressources/HRC_refSites/human_g1k_v37.fasta.gz" "ressources/HRC_refSites/"
-gunzip $hrc_RaynerCheckPATH"HRC.r1-1.GRCh37.wgs.mac5.sites.tab" $hrc_RaynerCheckPATH
 
 # Create binary file
 $PLINK_EXEC --file $DATAFILE  --make-bed --out $resultsPATH$DATASTEM"_binary"
@@ -39,6 +32,14 @@ $RAYNER_EXEC $resultsPATH$DATASTEM"_binary" $STRANDFILE $resultsPATH$DATASTEM"_a
 
 # QC steps,
 $PLINK_EXEC --bfile $resultsPATH$DATASTEM"_afterAlignment" --mind 0.1 --geno 0.1 --maf 0.05 --hwe 5e-8 --make-bed --out $resultsPATH$DATASTEM"_afterQC"
+
+#Unzip a few files
+wget "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz"
+mv "human_g1k_v37.fasta.gz" "ressources/HRC_refSites/human_g1k_v37.fasta.gz"
+wget "ftp://ngs.sanger.ac.uk/production/hrc/HRC.r1/HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz" 
+mv "HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz" "ressources/HRC_refSites/HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz"
+gunzip "ressources/HRC_refSites/human_g1k_v37.fasta.gz" 
+gunzip $hrc_RaynerCheckPATH"HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 
 
 # Need to perform QC before the next command.

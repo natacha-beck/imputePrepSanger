@@ -22,6 +22,8 @@ DATASTEM=$arr[0]
 DATAFILE=$dataPATH$1
 
 #Unzip a few files
+wget "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz" "ressources/HRC_refSites/"
+wget "ftp://ngs.sanger.ac.uk/production/hrc/HRC.r1/HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz" "ressources/HRC_refSites/"
 gunzip "ressources/HRC_refSites/human_g1k_v37.fasta.gz" "ressources/HRC_refSites/"
 gunzip $hrc_RaynerCheckPATH"HRC.r1-1.GRCh37.wgs.mac5.sites.tab" $hrc_RaynerCheckPATH
 

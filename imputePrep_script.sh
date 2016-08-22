@@ -21,6 +21,10 @@ STRANDFILE=$refStrandPATH$2
 DATASTEM=$arr[0]
 DATAFILE=$dataPATH$1
 
+#Unzip a few files
+gunzip "ressources/HRC_refSites/human_g1k_v37.fasta.gz" "ressources/HRC_refSites/"
+gunzip $hrc_RaynerCheckPATH"HRC.r1-1.GRCh37.wgs.mac5.sites.tab" $hrc_RaynerCheckPATH
+
 # Create binary file
 $PLINK_EXEC --file $DATAFILE  --make-bed --out $resultsPATH$DATASTEM"_binary"
 

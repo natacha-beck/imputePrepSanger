@@ -17,8 +17,8 @@ RAYNER_EXEC=$refStrandPATH"update_build.sh"
 # Data file name
 STRANDFILE=$refStrandPATH$2
 #DATAFILE=$dataPATH"MAVAN_PsychChip"
-@arr = split(/./, $1);
-DATASTEM=$arr[0]
+#@arr = split(/./, $1);
+DATASTEM=$1
 DATAFILE=$dataPATH$1
 
 #Unzip a few files

@@ -19,7 +19,7 @@ STRANDFILE=$refStrandPATH$2
 #DATAFILE=$dataPATH"MAVAN_PsychChip"
 #@arr = split(/./, $1);
 DATASTEM=$1
-DATAFILE=$dataPATH$1
+DATAFILE=$1
 
 
 # Create binary file

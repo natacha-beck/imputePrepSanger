@@ -44,12 +44,12 @@ $RAYNER_EXEC $intermedPATH$DATASTEM"_binary" $STRANDFILE $intermedPATH$DATASTEM"
 $PLINK_EXEC --bfile $intermedPATH$DATASTEM"_afterAlignment" --mind 0.1 --geno 0.1 --maf 0.05 --hwe 5e-8 --make-bed --out $intermedPATH$DATASTEM"_afterQC"
  
 #Unzip a few files
-#wget "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz"
-#mv "human_g1k_v37.fasta.gz" $hrc_RaynerCheckPATH"human_g1k_v37.fasta.gz"
-#wget "ftp://ngs.sanger.ac.uk/production/hrc/HRC.r1/HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz" 
-#mv "HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz" $hrc_RaynerCheckPATH"HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz"
-#gunzip $hrc_RaynerCheckPATH"human_g1k_v37.fasta.gz" 
-#gunzip $hrc_RaynerCheckPATH"HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz"
+wget "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz"
+mv "human_g1k_v37.fasta.gz" $hrc_RaynerCheckPATH"human_g1k_v37.fasta.gz"
+wget "ftp://ngs.sanger.ac.uk/production/hrc/HRC.r1/HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz" 
+mv "HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz" $hrc_RaynerCheckPATH"HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz"
+gunzip $hrc_RaynerCheckPATH"human_g1k_v37.fasta.gz" 
+gunzip $hrc_RaynerCheckPATH"HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz"
  
  
 # Need to perform QC before the next command.

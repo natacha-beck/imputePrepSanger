@@ -3,7 +3,7 @@ echo "This is a script to create vcf files for imputation on the Sanger servers"
 echo | ls tools/
 echo | ls ressources/
 echo | ls tools/plink/
-echo | ls data/
+echo | ls ../data/
 echo $1
 echo $2
 

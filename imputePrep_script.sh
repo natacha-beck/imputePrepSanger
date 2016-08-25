@@ -11,7 +11,7 @@ echo $2
 # Paths
 dataPATH="../data/"
 refStrandPATH="ressources/strand/"
-intermedPATH="../results/"
+intermedPATH="results/"
 resultsPATH="../data/"
 plinkPATH="tools/plink/"
 bcftoolsPATH="tools/bcftools/"
@@ -25,7 +25,7 @@ BCFTOOLS_EXEC=$bcftoolsPATH"bin/bcftools"
 RAYNER_EXEC=$refStrandPATH"update_build.sh"
 
 # Data file name
-STRANDFILE=$refStrandPATH$2
+STRANDFILE=$dataPATH$2
 #DATAFILE=$dataPATH"MAVAN_PsychChip"
 #@arr = split(/./, $1);
 DATASTEM=$1

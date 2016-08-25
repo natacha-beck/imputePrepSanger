@@ -37,7 +37,7 @@ $PLINK_EXEC --file $DATAFILE  --make-bed --out $intermedPATH$DATASTEM"_binary"
  
  
 # Update build and strand
-$RAYNER_EXEC $intermedPATH$DATASTEM"_binary" $STRANDFILE $intermedPATHPATH$DATASTEM"_afterAlignment"
+$RAYNER_EXEC $intermedPATH$DATASTEM"_binary" $STRANDFILE $intermedPATH$DATASTEM"_afterAlignment"
  
  
 # QC steps,

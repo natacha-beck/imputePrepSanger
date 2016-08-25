@@ -1,29 +1,30 @@
 #!/bin/bash
 echo "This is a script to create vcf files for imputation on the Sanger servers"
-echo | ls
-echo | tools/plink/ls
+echo | ls tools/
+echo | ls ressources/
+echo | ls tools/plink/
 echo $1
 echo $2
 
-# # Paths
-# dataPATH="ressources/data/"
-# refStrandPATH="ressources/strand/"
-# resultsPATH="results/"
-# plinkPATH="tools/plink/"
-# bcftoolsPATH="tools/bcftools/"
-# hrc_RaynerCheckPATH="ressources/HRC_refSites/"
-# 
-# # Software exec
-# PLINK_EXEC=$plinkPATH"plink"
-# BCFTOOLS_EXEC=$bcftoolsPATH"bin/bcftools"
-# RAYNER_EXEC=$refStrandPATH"update_build.sh"
-# 
-# # Data file name
-# STRANDFILE=$refStrandPATH$2
-# #DATAFILE=$dataPATH"MAVAN_PsychChip"
-# #@arr = split(/./, $1);
-# DATASTEM=$1
-# DATAFILE=$1
+# Paths
+dataPATH="ressources/data/"
+refStrandPATH="ressources/strand/"
+resultsPATH="results/"
+plinkPATH="tools/plink/"
+bcftoolsPATH="tools/bcftools/"
+hrc_RaynerCheckPATH="ressources/HRC_refSites/"
+ 
+# Software exec
+PLINK_EXEC=$plinkPATH"plink"
+BCFTOOLS_EXEC=$bcftoolsPATH"bin/bcftools"
+RAYNER_EXEC=$refStrandPATH"update_build.sh"
+
+# Data file name
+STRANDFILE=$refStrandPATH$2
+#DATAFILE=$dataPATH"MAVAN_PsychChip"
+#@arr = split(/./, $1);
+DATASTEM=$1
+DATAFILE=$1
 # 
 # 
 # # Create binary file

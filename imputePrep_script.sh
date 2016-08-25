@@ -34,10 +34,10 @@ DATAFILE=$dataPATH$1
 #Unzip a few files
 wget "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz"
 mv "human_g1k_v37.fasta.gz" $hrc_RaynerCheckPATH"human_g1k_v37.fasta.gz"
-wget "ftp://ngs.sanger.ac.uk/production/hrc/HRC.r1/HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz" 
-mv "HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz" $hrc_RaynerCheckPATH"HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz"
+wget "ftp://ngs.sanger.ac.uk/production/hrc/HRC.r1-1/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz" 
+mv "HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz" $hrc_RaynerCheckPATH"HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz"
 gunzip $hrc_RaynerCheckPATH"human_g1k_v37.fasta.gz" 
-gunzip $hrc_RaynerCheckPATH"HRC.r1.GRCh37.autosomes.mac5.sites.tab.gz"
+gunzip $hrc_RaynerCheckPATH"HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz"
  
  
 # Create binary file

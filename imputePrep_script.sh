@@ -32,7 +32,7 @@ DATAFILE=$1
  
  
 # Create binary file
-$PLINK_EXEC --file $DATAFILE  --make-bed --out $resultsPATH$DATASTEM"_binary"
+$PLINK_EXEC --file $results$DATAFILE  --make-bed --out $resultsPATH$DATASTEM"_binary"
  
  
 # Update build and strand

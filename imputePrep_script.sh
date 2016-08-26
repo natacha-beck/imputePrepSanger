@@ -32,8 +32,8 @@ DATASTEM=$1
 DATAFILE=$dataPATH$1
  
 #Unzip a few files
-wget "ftp://ngs.sanger.ac.uk/production/hrc/HRC.r1-1/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz" 
-mv "HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz" $hrc_RaynerCheckPATH"HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz"
+#wget "ftp://ngs.sanger.ac.uk/production/hrc/HRC.r1-1/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz" 
+mv $dataPATH"HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz" $hrc_RaynerCheckPATH"HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz"
 gunzip $hrc_RaynerCheckPATH"HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz"
 
 echo | ls $hrc_RaynerCheckPATH 

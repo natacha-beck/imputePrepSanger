@@ -1,10 +1,18 @@
 #!/usr/bin/perl
-
+# This is a modification of the script from W. Rayner. 
+# M.Forest 2016
+# marie.forest@ladydavis.ca
+#
+# Modifications include:
+#   - Strand is check only when there is no duplicate. 
+#   - Ids are changed to match HRC, made sure to use new ID for force allele
+#   - Added a plink command to create vcf
+#   
 # Script to check plink .bim files against HRC/1000G for strand, id names, positions, alleles, ref/alt assignment
 # W.Rayner 2015 
 # wrayner@well.ox.ac.uk
 #
-# Version 4.2
+# Version 4.5
 #
 #  -v4.0
 #  - removes SNPs not in the reference panel
@@ -384,7 +392,7 @@ while (<IN>)
     print E "$temp[1]\n";
     if ($verbose)
      {
-     print L "Duplicate $temp[1]\t$chrpos\n";
+     print L "Duplicate 1: $temp[1]\t$chrpos\n";
      }
     $duplicate++;
     }
@@ -397,67 +405,8 @@ while (<IN>)
     if ($id{$chrpos} eq $temp[1]) # id match
      {
      $idmatch++;
-     }
-    else # positions the same but ids are not, is this a genuine difference of name, or a mismapped SNP
-     {
-     if ($rs{$temp[1]} and $id{$chrpos} ne '.' and $chrpos ne $rs{$temp[1]}) # checks for mismapped SNP
-      {
-      # SNP rs exists in the reference dataset, and the HRC name is not = '.' (to exclude spurious mismatches where HRC name is not assigned),
-      # and position in the reference, based on rs id, is different from the current position
-      # check to see if the id is used elsewhere, if it is the wrong SNP has been chosen by position, 
-      # happens when there are adjacent SNPs and bim file SNP position is out, correct here by changing
-      # bim file location to that of the rs id in HRC
-      
-      if ($verbose)
-       {
-       print L "$temp[1]\t$id{$chrpos}\t$chrpos\t$rs{$temp[1]}\t$bim_alleles\t$refalt{$chrpos}\t$refalt{$rs{$temp[1]}}\n";
-       }
-       
-      # set exclusions for this SNP based on the new position to remove duplicates
-      $ChrPosTrAlleles =  $rs{$temp[1]}.'-'.$sort_tr_alleles;
-      $ChrPosAlleles =  $rs{$temp[1]}.'-'.$sort_alleles;
-     
-      $chrpos = $rs{$temp[1]};
-      
-      #check whether this SNP exists or not already in the data set at this new position as could create duplicate in the data set otherwise
-      if ($seen{$ChrPosAlleles} or $seen{$ChrPosTrAlleles})
-       {
-       print E "$temp[1]\n";
-       if ($verbose)
-        {
-        print L "Duplicate $temp[1]\t$rs{$temp[1]}\n";
-        }
-       $duplicate++;
-       }
-      else
-       {
-       $chrpos =~ /(.*)\-(.*)/;
-       print P "$temp[1]\t$2\n";
-       print C "$temp[1]\t$1\n";
-       $mismatchpos++;
-       }
-      
-      # update hash to reflect that this SNP has been seen in the data set before
-      $seen{$ChrPosAlleles} = 1;
-      $seen{$ChrPosTrAlleles} = 1; 
-      }
-     else
-      {
-      $idmismatch++;
-      if($id{$chrpos} ne '.')
-      {
-        print I "$temp[1]\t$id{$chrpos}\n"; #update ID
-      }
-      if ($verbose)
-       {
-       print L "$temp[1]\t$id{$chrpos}\t$chrpos\t$bim_alleles\t$refalt{$chrpos}\n";
-       }
-      $idmismatching = 1;
-      }
-     }
-     
-    my $checking = check_strand($refalt{$chrpos}, $bim_alleles, $temp[1], $AltAf{$chrpos}, $af{$temp[1]}, $id{$chrpos});
-    if (!$checking)
+      my $checking = check_strand($refalt{$chrpos}, $bim_alleles, $temp[1], $AltAf{$chrpos}, $af{$temp[1]}, $id{$chrpos});
+      if (!$checking)
      {
      if ($idmismatching)
       {
@@ -482,6 +431,112 @@ while (<IN>)
      #print to an exclusion file
      print E "$temp[1]\n";
      }
+     }
+    else # positions the same but ids are not, is this a genuine difference of name, or a mismapped SNP
+     {
+     if ($rs{$temp[1]} and $id{$chrpos} ne '.' and $chrpos ne $rs{$temp[1]}) # checks for mismapped SNP
+      {
+      # SNP rs exists in the reference dataset, and the HRC name is not = '.' (to exclude spurious mismatches where HRC name is not assigned),
+      # and position in the reference, based on rs id, is different from the current position
+      # check to see if the id is used elsewhere, if it is the wrong SNP has been chosen by position, 
+      # happens when there are adjacent SNPs and bim file SNP position is out, correct here by changing
+      # bim file location to that of the rs id in HRC
+      
+      if ($verbose)
+       {
+       print L "line 413 : $temp[1]\t$id{$chrpos}\t$chrpos\t$rs{$temp[1]}\t$bim_alleles\t$refalt{$chrpos}\t$refalt{$rs{$temp[1]}}\n";
+       }
+       
+      # set exclusions for this SNP based on the new position to remove duplicates
+      $ChrPosTrAlleles =  $rs{$temp[1]}.'-'.$sort_tr_alleles;
+      $ChrPosAlleles =  $rs{$temp[1]}.'-'.$sort_alleles;
+     
+      $chrpos = $rs{$temp[1]};
+      
+      #check whether this SNP exists or not already in the data set at this new position as could create duplicate in the data set otherwise
+      if ($seen{$ChrPosAlleles} or $seen{$ChrPosTrAlleles})
+       {
+       print E "$temp[1]\n";
+       if ($verbose)
+        {
+        print L "Duplicate 2: $temp[1]\t$rs{$temp[1]}\n";
+        }
+       $duplicate++;
+       }
+      else
+      {
+        $chrpos =~ /(.*)\-(.*)/;
+        print P "$temp[1]\t$2\n";
+        print C "$temp[1]\t$1\n";
+        $mismatchpos++;
+        # update hash to reflect that this SNP has been seen in the data set before
+        $seen{$ChrPosAlleles} = 1;
+        $seen{$ChrPosTrAlleles} = 1; 
+        my $checking = check_strand($refalt{$chrpos}, $bim_alleles, $temp[1], $AltAf{$chrpos}, $af{$temp[1]}, $id{$chrpos});
+        if (!$checking)
+        {
+          if ($idmismatching)
+          {
+            #alleles and ids don't match
+            $idallelemismatch++;
+            if ($id{$chrpos} eq '.')
+            {
+              $hrcdot++;
+            }
+          }
+          if ($verbose)
+          {
+            print L "nomatch $temp[1]\t$id{$chrpos}\t$refalt{$chrpos}\t$bim_alleles\n";
+            if ($refalt{$chrpos} eq 'N:N')
+            {
+              print L "$temp[1] MultiAllelic\n";
+            }
+          }
+          $nomatchalleles++;   
+          #print to an exclusion file
+          print E "$temp[1]\n";
+        }
+      }
+     }
+     else
+      {
+      $idmismatch++;
+      if($id{$chrpos} ne '.')
+      {
+        print I "$temp[1]\t$id{$chrpos}\n"; #update ID
+      }
+      if ($verbose)
+       {
+       print L "$temp[1]\t$id{$chrpos}\t$chrpos\t$bim_alleles\t$refalt{$chrpos}\n";
+       }
+      $idmismatching = 1;
+      my $checking = check_strand($refalt{$chrpos}, $bim_alleles, $temp[1], $AltAf{$chrpos}, $af{$temp[1]}, $id{$chrpos});
+      if (!$checking)
+      {
+        if ($idmismatching)
+        {
+          #alleles and ids don't match
+          $idallelemismatch++;
+          if ($id{$chrpos} eq '.')
+          {
+            $hrcdot++;
+          }
+        }
+        if ($verbose)
+        {
+          print L "nomatch $temp[1]\t$id{$chrpos}\t$refalt{$chrpos}\t$bim_alleles\n";
+          if ($refalt{$chrpos} eq 'N:N')
+          {
+            print L "$temp[1] MultiAllelic\n";
+          }
+        }
+        $nomatchalleles++;   
+    
+        #print to an exclusion file
+        print E "$temp[1]\n";
+      }
+      }
+     }
     }
    }
   elsif ($rs{$temp[1]}) #match on id, check why position did not match, set position to reference
@@ -492,7 +547,7 @@ while (<IN>)
     print E "$temp[1]\n";
     if ($verbose)
      {
-     print L "Duplicate $temp[1]\t$rs{$temp[1]}\n";
+     print L "Duplicate 3: $temp[1]\t$rs{$temp[1]}\n";
      }
     $duplicate++;
     }
@@ -664,7 +719,7 @@ sub check_strand
  
  if ($verbose)
   {
-  print L "$id\t$a1\t$a2";
+  print L "line 667: $id\t$a1\t$a2";
   }
   
  # flip one set and check if they match opposite strand
@@ -672,7 +727,7 @@ sub check_strand
  
  if ($verbose)
   {
-  print L "\t$a2\n";
+  print L "line 675: \t$a2\n";
   }
   
  my @allelesflip = split(/\:/, $a2); 
@@ -693,7 +748,7 @@ sub check_strand
   
   if ($verbose)
    {
-   print L "$id\t$maf\t$a1\n";
+   print L "line 696: $id\t$maf\t$a1\n";
    }
    
   $check = 5;
@@ -715,6 +770,10 @@ sub check_strand
   my $RefAf = 1 - $altaf;
   $diff = $RefAf - $bimaf;
   print PL "$id\t$RefAf\t$bimaf\t$diff\t1\n";
+  if ($verbose)
+   {
+   print L "line 720";
+   }
   }
  elsif ($alleles1[0] eq $alleles2[1] and $alleles1[1] eq $alleles2[0])
   { # strand ok, ref alt swapped
@@ -726,6 +785,10 @@ sub check_strand
   #my $newaf = 1-$refaf;
   $diff = $altaf - $bimaf;
   print PL "$id\t$altaf\t$bimaf\t$diff\t2\n";
+    if ($verbose)
+   {
+   print L "line 735\n";
+   }
   }
  elsif ($alleles1[0] eq $allelesflip[0] and $alleles1[1] eq $allelesflip[1])
   { # strand flipped, ref alt ok
@@ -736,6 +799,10 @@ sub check_strand
   my $RefAf = 1 - $altaf;
   $diff = $RefAf - $bimaf;
   print PL "$id\t$RefAf\t$bimaf\t$diff\t3\n";
+  if ($verbose)
+   {
+   print L "line 749";
+   }
   }
  elsif ($alleles1[0] eq $allelesflip[1] and $alleles1[1] eq $allelesflip[0])
   { # strand flipped, ref alt swapped
@@ -748,11 +815,19 @@ sub check_strand
   #my $af = 1-$altaf;
   $diff = $altaf - $bimaf;
   print PL "$id\t$altaf\t$bimaf\t$diff\t4\n";
+  if ($verbose)
+   {
+   print L "line 765";
+   }
   } 
  else
   {
   $check = 0;
   #print PL "7\n";
+  if ($verbose)
+   {
+   print L "line 774";
+   }
   }
  if (($id eq $newid or $newid eq '' or $newid eq '.')and $check)
  {
@@ -778,7 +853,7 @@ sub check_strand
     
    if ($verbose)
     {
-    print L "$id\t$bimaf\t$altaf\t$diff\n";
+    print L "line 781: $id\t$bimaf\t$altaf\t$diff\n";
     }
     
    $check = 6;

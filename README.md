@@ -15,20 +15,20 @@ Note that for now, the present pipeline creates input file for imputation using 
 
 1.  Build and strand are updated using the files from Will Rayner website (http://www.well.ox.ac.uk/~wrayner/strand/).
 2.  Quality Control steps (using plink):
-     i.  maximum per person missing: 0.1 (mind).
-     ii.  maximum per SNP missing: 0.1 (geno).
-     iii.  Minor allele frequency: 0.05 (maf).
-     iv.  Hardy-Weinberg equilibrium exact test using p-value 5e-8 (--hwe).
+    1.  maximum per person missing: 0.1 (mind).
+    2.  maximum per SNP missing: 0.1 (geno).
+    3.  Minor allele frequency: 0.05 (maf).
+    4.  Hardy-Weinberg equilibrium exact test using p-value 5e-8 (--hwe).
 3.  Then a perl script modified from Will Rayner (http://www.well.ox.ac.uk/~wrayner/tools/) creates a series of plink commands to:
-     i.  Update: position, rsID, ref/alt allele assignment and strand to match HRC panel.
-     ii.  Remove:
-        a.  Variants on chromosomes: X, XY, Y and MT.
-        b.  Indels.
-        c.  A/T & G/C SNPs if MAF > 0.4 (palindromic SNPs, in this situation we are less confident about the strand),
-        d.  SNPs with differing alleles,
-        e.  No match to reference panel,
-        f.  SNPs with > 0.2 allele frequency difference to the reference,
-        g.  Duplicates.
+    1.  Update: position, rsID, ref/alt allele assignment and strand to match HRC panel.
+    2.  Remove:
+        1.  Variants on chromosomes: X, XY, Y and MT.
+        2.  Indels.
+        3.  A/T & G/C SNPs if MAF > 0.4 (palindromic SNPs, in this situation we are less confident about the strand),
+        4.  SNPs with differing alleles,
+        5.  No match to reference panel,
+        6.  SNPs with > 0.2 allele frequency difference to the reference,
+        7.  Duplicates.
 4.  Create the vcf files using plink 1.9
 5.  Using BCFTOOLS (version 1.3.1) rename the chromosomes to Ensembl-style chromosome names.
 6.  Using BCFTOOLS run a check to make sure the reference alleles match with the ref alleles in HRC panel.

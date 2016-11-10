@@ -37,8 +37,8 @@ RUN mv update_build.sh ressources/strand/
 RUN mv bcftools-1.3.1.tar.bz2 tools/
 RUN mv plink_linux_x86_64.zip tools/plink/
 
-WORKDIR tools
-RUN  bunzip2 bcftools-1.3.1.tar.bz2 \
+WORKDIR tools/
+RUN bunzip2 bcftools-1.3.1.tar.bz2 \
     && tar -xvf bcftools-1.3.1.tar \
     && cd bcftools-1.3.1 \
     && mkdir bin \

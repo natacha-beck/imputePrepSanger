@@ -34,7 +34,7 @@ RUN mkdir results \
 RUN mv HRC-1000G-check-bim_modified.pl ressources/HRC_refSites/
 RUN mv ucsc2ensembl.txt ressources/HRC_refSites/
 RUN mv update_build.sh ressources/strand/
-RUN mv bunzip2 bcftools-1.3.1.tar.bz2 tools/
+RUN mv bcftools-1.3.1.tar.bz2 tools/
 RUN mv plink_linux_x86_64.zip tools/plink/
 
 WORKDIR tools

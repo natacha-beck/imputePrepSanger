@@ -50,7 +50,7 @@ RUN tar -xvf bcftools-1.3.1.tar \
 RUN mv bcftools-1.3.1/bcftools bcftools-1.3.1/bin
 
 #Now we unzip plink 1.9
-WORKDIR /plink/
+WORKDIR plink/
 RUN  unzip -a plink_linux_x86_64.zip
 
 

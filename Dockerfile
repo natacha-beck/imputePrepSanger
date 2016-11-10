@@ -36,9 +36,10 @@ RUN mv bcftools-1.3.1.tar.bz2 tools/
 RUN mv plink_linux_x86_64.zip tools/plink/
 
 RUN cd /imputePrepSanger/tools/ && echo | ls
+RUN cd /imputePrepSanger/ && echo | ls
 
 WORKDIR tools/
-RUN bunzip2 bcftools-1.3.1.tar.bz2 
+RUN bunzip2 -f bcftools-1.3.1.tar.bz2 
 RUN tar -xvf bcftools-1.3.1.tar \
     && cd bcftools-1.3.1 \
     && mkdir bin \

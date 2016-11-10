@@ -18,7 +18,7 @@ RUN yum install -y bzip2 \
 RUN git clone https://github.com/eauforest/imputePrepSanger.git
 
 WORKDIR /imputePrepSanger/
-#RUN  echo | ls
+RUN  echo | ls
 
 RUN mkdir results \
     && mkdir tools \
@@ -28,7 +28,7 @@ RUN mkdir results \
     && mkdir ressources/HRC_refSites \
     && mkdir ressources/strand
 
-#RUN cd /imputePrepSanger/ressources/data/ && echo | ls
+RUN cd /imputePrepSanger/tools/ && echo | ls
 
 # These files are from the git clone, and need to move into specific directories
 RUN mv HRC-1000G-check-bim_modified.pl ressources/HRC_refSites/
@@ -37,7 +37,7 @@ RUN mv update_build.sh ressources/strand/
 RUN mv bcftools-1.3.1.tar.bz2 tools/
 RUN mv plink_linux_x86_64.zip tools/plink/
 
-WORKDIR tools/
+WORKDIR /tools/
 RUN bunzip2 bcftools-1.3.1.tar.bz2 
 RUN tar -xvf bcftools-1.3.1.tar \
     && cd bcftools-1.3.1 \
@@ -49,7 +49,7 @@ RUN tar -xvf bcftools-1.3.1.tar \
 RUN mv bcftools-1.3.1/bcftools bcftools-1.3.1/bin
 
 #Now we unzip plink 1.9
-WORKDIR plink/
+WORKDIR /plink/
 RUN  unzip -a plink_linux_x86_64.zip
 
 

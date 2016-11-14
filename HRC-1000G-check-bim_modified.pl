@@ -601,19 +601,19 @@ my $pos_check = $idmatch + $idmismatch;
 my $worked_check = $idmatch + $idmismatch + $mismatchpos;
 my $worked_check1 = $strand + $nostrand;
 
-print "Matching to $referenceused\n";
-print "\nPosition Matches\n ID matches $referenceused $idmatch\n ID Doesn't match $referenceused $idmismatch\n Total Position Matches $pos_check\nID Match\n Different position to $referenceused $mismatchpos\nNo Match to $referenceused $nothing\nSkipped (X, XY, Y, MT) $altchr\nTotal in bim file $total\nTotal processed $check_total\n\n"; 
-print "Indels (ignored in r1) $indel\n\n";
-print "SNPs not changed $unchanged\nSNPs to change ref alt $nomatch\nStrand ok $strand\nTotal Strand ok $check_total1\n\n";
-print "Strand to change $nostrand\nTotal checked $worked_check\nTotal checked Strand $worked_check1\n";
+print "Matching to: $referenceused\n";
+print "\nPosition Matches\n ID matches: $referenceused $idmatch\n ID Doesn't match: $referenceused $idmismatch\n Total Position Matches: $pos_check\nID Match\n Different position to: $referenceused $mismatchpos\nNo Match to: $referenceused $nothing\nSkipped (X, XY, Y, MT): $altchr\nTotal in bim file: $total\nTotal processed $check_total\n\n"; 
+print "Indels (ignored in r1): $indel\n\n";
+print "SNPs not changed: $unchanged\nSNPs to change ref alt: $nomatch\nStrand ok: $strand\nTotal Strand ok : $check_total1\n\n";
+print "Strand to change: $nostrand\nTotal checked: $worked_check\nTotal checked Strand : $worked_check1\n";
 if (!$noexclude)
  {
  print "Total removed for allele Frequency diff > $threshold $allelediff\n";
  }
-print "Palindromic SNPs with Freq > 0.4 $palin\n\n";
-print "\nNon Matching alleles $nomatchalleles\n";
+print "Palindromic SNPs with Freq > 0.4: $palin\n\n";
+print "\nNon Matching alleles: $nomatchalleles\n";
 print "ID and allele mismatching $idallelemismatch; where $referenceused is . $hrcdot\n";
-print "Duplicates removed $duplicate\n";
+print "Duplicates removed: $duplicate\n";
 
 #print L "Total bim File Rows $total\n";
 print L "Matching to $referenceused\n";

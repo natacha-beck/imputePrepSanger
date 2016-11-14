@@ -60,32 +60,32 @@ fi
 echo | ls $hrc_RaynerCheckPATH 
  
 # Create binary file
-$PLINK_EXEC --file $DATAFILE  --make-bed --out $intermedPATH$DATASTEM"_binary" >resultsScreen.txt
+$PLINK_EXEC --file $DATAFILE  --make-bed --out $intermedPATH$DATASTEM"_binary" >$resultsPATH"resultsScreen.txt"
 if [ "$?" != "0" ]; then
   error_exit "Error with PLINK, creating the binary file."
 fi 
  
 # Update build and strand
-$RAYNER_EXEC $intermedPATH$DATASTEM"_binary" $STRANDFILE $intermedPATH$DATASTEM"_afterAlignment" >>resultsScreen.txt
+$RAYNER_EXEC $intermedPATH$DATASTEM"_binary" $STRANDFILE $intermedPATH$DATASTEM"_afterAlignment" >>$resultsPATH"resultsScreen.txt"
 if [ "$?" != "0" ]; then
   error_exit "Error while updating the build and strand."
 fi 
  
 # QC steps,
 #$PLINK_EXEC --bfile $intermedPATH$DATASTEM"_afterAlignment" --mind 0.1 --geno 0.1 --maf 0.05 --hwe 5e-8 --make-bed --out $intermedPATH$DATASTEM"_afterQC"
-$PLINK_EXEC --bfile $intermedPATH$DATASTEM"_afterAlignment" --mind $3 --geno $4 --maf $5 --hwe $6 --make-bed --out $intermedPATH$DATASTEM"_afterQC" >>resultsScreen.txt
+$PLINK_EXEC --bfile $intermedPATH$DATASTEM"_afterAlignment" --mind $3 --geno $4 --maf $5 --hwe $6 --make-bed --out $intermedPATH$DATASTEM"_afterQC" >>$resultsPATH"resultsScreen.txt"
 if [ "$?" != "0" ]; then
   error_exit "Error with PLINK, performing the QC steps."
 fi 
  
 # Need to perform QC before the next command.
 # Also need the .bim and (from the plink --freq command) .frq files.
-$PLINK_EXEC --bfile $intermedPATH$DATASTEM"_afterQC" --freq --out $intermedPATH$DATASTEM"_afterQC_freq" >>resultsScreen.txt
+$PLINK_EXEC --bfile $intermedPATH$DATASTEM"_afterQC" --freq --out $intermedPATH$DATASTEM"_afterQC_freq" >>$resultsPATH"resultsScreen.txt"
 if [ "$?" != "0" ]; then
   error_exit "Error with PLINK when getting the frequency."
 fi
 
-perl $hrc_RaynerCheckPATH"HRC-1000G-check-bim_modified.pl" -b $intermedPATH$DATASTEM"_afterQC.bim" -f $intermedPATH$DATASTEM"_afterQC_freq.frq" -r $hrc_RaynerCheckPATH"HRC.r1-1.GRCh37.wgs.mac5.sites.tab" -h >>resultsScreen.txt  
+perl $hrc_RaynerCheckPATH"HRC-1000G-check-bim_modified.pl" -b $intermedPATH$DATASTEM"_afterQC.bim" -f $intermedPATH$DATASTEM"_afterQC_freq.frq" -r $hrc_RaynerCheckPATH"HRC.r1-1.GRCh37.wgs.mac5.sites.tab" -h >>$resultsPATH"resultsScreen.txt"  
 if [ "$?" != "0" ]; then
   error_exit "Error while running the perl script."
 fi
@@ -127,6 +127,6 @@ if [ "$?" != "0" ]; then
   error_exit "Error while indexing the vcf file."
 fi
 
-sh ./reportRedaction.sh $DATASTEM
+sh ./reportRedaction.sh $resultsPATH $DATASTEM
 
 echo "The pipeline was run successfully."

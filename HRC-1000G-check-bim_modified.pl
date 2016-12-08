@@ -296,7 +296,8 @@ open PL, ">$plotfile" or dir $!;
 # shell script for running plink
 open SH, ">Run-plink.sh" or die $!;
 #set plink to use here
-my $plink = 'tools/plink/plink';
+my $plink = `which plink`;
+chomp($plink);
 
 my $tempcount = 1;
 my $tempfile = 'TEMP'.$tempcount;

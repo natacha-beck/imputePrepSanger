@@ -11,25 +11,32 @@
 #3. The new stem for output
 #Result: A new bed file (etc) using the new stem
 
+#Required parameters:
+#1. The original bed stem (not including file extension suffix)
+#2. The strand file to apply
+#3. The new stem for output
+#Result: A new bed file (etc) using the new stem
+
 #Added by M. Forest to match the plink version we have
-plinkPATH="tools/plink/"
-PLINK_EXEC=$plinkPATH"plink"
+PLINK_EXEC=`which plink`
 
 #Unpack the parameters into labelled variables
 stem=$1
-strand_file=$2
-outstem=$3
+input_dir=$2
+strand_file=$3
+outstem=$4
+output=$5
 echo Input stem is $stem
 echo Strand file is $strand_file
 echo Output stem is $outstem
 
 #Cut the strand file into a series of Plink slices
-chr_file=$strand_file.chr
-pos_file=$strand_file.pos
-flip_file=$strand_file.flip
-cat $strand_file | cut -f 1,2 > $chr_file
-cat $strand_file | cut -f 1,3 > $pos_file
-cat $strand_file | awk '{if ($5=="-") print $0}' | cut -f 1 > $flip_file
+chr_file=$output/$strand_file.chr
+pos_file=$output/$strand_file.pos
+flip_file=$output/$strand_file.flip
+cat $input_dir/$strand_file | cut -f 1,2 > $chr_file
+cat $input_dir/$strand_file | cut -f 1,3 > $pos_file
+cat $input_dir/$strand_file | awk '{if ($5=="-") print $0}' | cut -f 1 > $flip_file
 
 #Because Plink only allows you to update one attribute at a time, we need lots of temp
 #Plink files
@@ -48,5 +55,5 @@ $PLINK_EXEC  --allow-no-sex --bfile $temp2 --flip $flip_file --make-bed --out $t
 $PLINK_EXEC  --allow-no-sex --bfile $temp3 --extract $pos_file --make-bed --out $outstem
 
 #Now delete any temporary artefacts produced
-#rm -f $temp_prefix*
+rm -f $temp_prefix*
 

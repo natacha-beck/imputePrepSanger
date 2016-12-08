@@ -93,4 +93,10 @@ if [ "$?" != "0" ]; then
   error_exit "Error while write report."
 fi
 
+cp -r $OUTPUT "${OUTPUT}_FullOutput"
+shopt -s extglob
+cd $OUTPUT
+rm -rf !("${DATASTEM}_afterQC-updatedChr_vcf.vcf.gz"|FinalReport.txt|resultsScreen.txt|"${DATASTEM}_afterQC-updatedChr_vcf.vcf.gz.csi")
+cd .. 
+
 echo "The pipeline was run successfully."

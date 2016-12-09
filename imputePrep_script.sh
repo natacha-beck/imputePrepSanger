@@ -28,7 +28,7 @@ function error_exit
 mkdir $OUTPUT
 
 # Create binary file
-echo "== Run plink, create bimnary file =="
+echo "== Run plink, create binary file =="
 plink --file $VARDATA/$DATASTEM --make-bed --out $OUTPUT/$DATASTEM"_binary" | tee $OUTPUT/"resultsScreen.txt"
 if [ "$?" != "0" ]; then
   error_exit "Error with PLINK, creating the binary file."
@@ -42,7 +42,7 @@ if [ "$?" != "0" ]; then
 fi 
  
 # QC steps
-echo "== Run plink for QC (step 1) =="
+echo "== Run plink for QC =="
 plink --bfile $OUTPUT/$DATASTEM"_afterAlignment" --mind $MIND --geno $GENO --maf $MAF --hwe $HWE --make-bed --out $OUTPUT/$DATASTEM"_afterQC" | tee -a $OUTPUT/"resultsScreen.txt"
 if [ "$?" != "0" ]; then
   error_exit "Error with PLINK, performing the QC steps."
@@ -50,7 +50,7 @@ fi
  
 # Need to perform QC before the next command.
 # Also need the .bim and (from the plink --freq command) .frq files.
-echo "== Run plink for QC (step 2) =="
+echo "== Run plink for creating frequency files =="
 plink --bfile $OUTPUT/$DATASTEM"_afterAlignment" --freq --out $OUTPUT/$DATASTEM"_afterAlignment_freq" | tee -a $OUTPUT/"resultsScreen.txt"
 if [ "$?" != "0" ]; then
   error_exit "Error with PLINK when getting the frequency."
@@ -67,7 +67,7 @@ fi
 chmod u+x Run-plink.sh
 ./Run-plink.sh
 if [ "$?" != "0" ]; then
-  error_exit "Error while the PLINK bash file following perl script."
+  error_exit "Error while running the PLINK bash file following the perl script."
 fi
 
 echo "== Run bcftools =="
@@ -90,7 +90,7 @@ fi
 echo "== Run reportRedaction =="
 reportRedaction.sh $OUTPUT $DATASTEM
 if [ "$?" != "0" ]; then
-  error_exit "Error while write report."
+  error_exit "Error while writing the report."
 fi
 
 cp -r $OUTPUT "${OUTPUT}_FullOutput"

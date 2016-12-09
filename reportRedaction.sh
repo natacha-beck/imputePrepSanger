@@ -3,14 +3,15 @@ echo "This is a script to create the report from the imputePrepSanger pipeline"
 
 sep="========================================================================="
 intro="\nThis is a report summarizing the different steps performed.\nDate: "
+intro2="\n You are using version 1.0 of the pipeline:\n it uses HRCr.1 sites list and the REF allele are matched to GRCh37 \n"
 today=$(date)
-stringOut="$sep$intro$today \n$sep"
+stringOut="$sep$intro$today$intro2 \n$sep"
 resultsScreen=$1"/resultsScreen.txt"
 finalReport=$1"/FinalReport.txt"
 
 echo -e $stringOut                                                                                           >$finalReport
-echo -e "The number of SNPs and individuals are present in the genotype file."                              >>$finalReport
-grep "Performing single-pass .bed write (" $resultsScreen | cut -c35-                                      >>$finalReport
+echo -e "The number of SNPs and individuals present in the genotype file."                                  >>$finalReport
+grep "Performing single-pass .bed write (" $resultsScreen | cut -c35-                                       >>$finalReport
 echo -e $sep                                                                                                >>$finalReport
 
 #exit
@@ -30,11 +31,11 @@ grep "variants removed due to minor allele threshold(s)" $resultsScreen         
 echo -e $sep                                                                                                >>$finalReport
 # Matching to reference panel.
 echo -e "Results of the matching to reference panel: \n"                                                    >>$finalReport
-grep "Position Matches:"                       $resultsScreen                                               >>$finalReport
+echo -e "Position Matches: \n"                                                                              >>$finalReport
 grep "ID matches: HRC"                         $resultsScreen                                               >>$finalReport
 grep "ID Doesn't match: HRC"                   $resultsScreen                                               >>$finalReport
 grep "Total Position Matches:"                 $resultsScreen                                               >>$finalReport
-grep "ID Match:"                               $resultsScreen                                               >>$finalReport
+grep "ID Match"                                $resultsScreen                                               >>$finalReport
 grep "Different position to: HRC"              $resultsScreen                                               >>$finalReport
 grep "No Match to: HRC"                        $resultsScreen                                               >>$finalReport
 grep "Skipped (X, XY, Y, MT):"                 $resultsScreen                                               >>$finalReport

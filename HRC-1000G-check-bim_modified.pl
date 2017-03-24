@@ -324,10 +324,10 @@ print SH "$tempfile\n";
 
 #update ids
 #remove the following 4 lines if you want don't want to update the SNP identifiers to match the HRC
-print SH "$plink --bfile $tempfile --update-name $idfile --make-bed --out ";
-$tempcount++;
-$tempfile = 'TEMP'.$tempcount;
-print SH "$tempfile\n";
+#print SH "$plink --bfile $tempfile --update-name $idfile --make-bed --out ";
+#$tempcount++;
+#$tempfile = 'TEMP'.$tempcount;
+#print SH "$tempfile\n";
 
 #force alleles
 my $newfile = $file_stem.'-updated';

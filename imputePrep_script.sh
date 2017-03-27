@@ -51,13 +51,13 @@ fi
 # Need to perform QC before the next command.
 # Also need the .bim and (from the plink --freq command) .frq files.
 echo "== Run plink for creating frequency files =="
-plink --bfile $OUTPUT/$DATASTEM"_afterAlignment" --freq --out $OUTPUT/$DATASTEM"_afterAlignment_freq" | tee -a $OUTPUT/"resultsScreen.txt"
+plink --bfile $OUTPUT/$DATASTEM"_afterQC" --freq --out $OUTPUT/$DATASTEM"_afterQC_freq" | tee -a $OUTPUT/"resultsScreen.txt"
 if [ "$?" != "0" ]; then
   error_exit "Error with PLINK when getting the frequency."
 fi
 
-echo "== Run HRC-1000G-check-bim_modified.pl =="
-HRC-1000G-check-bim_modified.pl -b $OUTPUT/$DATASTEM"_afterAlignment.bim" -f $OUTPUT/$DATASTEM"_afterAlignment_freq.frq" -r $FIXDATA/"HRC.r1-1.GRCh37.wgs.mac5.sites.tab" -h | tee -a $OUTPUT/"resultsScreen.txt"  
+echo "== Run HRC-1000G-check-bim_v4.2.7.pl =="
+HRC-1000G-check-bim_modified.pl -b $OUTPUT/$DATASTEM"_afterQC.bim" -f $OUTPUT/$DATASTEM"_afterQC_freq.frq" -r $FIXDATA/"HRC.r1-1.GRCh37.wgs.mac5.sites.tab" -h | tee -a $OUTPUT/"resultsScreen.txt"  
 if [ "$?" != "0" ]; then
   error_exit "Error while running the perl script."
 fi
@@ -71,18 +71,18 @@ if [ "$?" != "0" ]; then
 fi
 
 echo "== Run bcftools =="
-bcftools annotate -Oz --rename-chrs $FIXDATA/"ucsc2ensembl.txt" $OUTPUT/$DATASTEM"_afterAlignment-updated_vcf.vcf.gz" > $OUTPUT/$DATASTEM"_afterQC-updatedChr_vcf.vcf.gz"
+bcftools annotate -Oz --rename-chrs $FIXDATA/"ucsc2ensembl.txt" $OUTPUT/$DATASTEM"_afterQC-updated_vcf.vcf.gz" > $OUTPUT/$DATASTEM"_afterQC-updatedChr.vcf.gz"
 if [ "$?" != "0" ]; then
   error_exit "Error while renaming the chromosome."
 fi
 
 cp $FIXDATA/"human_g1k_v37.fasta" $OUTPUT/ 
-bcftools norm --check-ref e -f $OUTPUT/"human_g1k_v37.fasta" $OUTPUT/$DATASTEM"_afterQC-updatedChr_vcf.vcf.gz" -o $OUTPUT/$DATASTEM"_checkRef"
+bcftools norm --check-ref e -f $OUTPUT/"human_g1k_v37.fasta" $OUTPUT/$DATASTEM"_afterQC-updatedChr.vcf.gz" -o $OUTPUT/$DATASTEM"_checkRef"
 if [ "$?" != "0" ]; then
   error_exit "Error while checking that the REF allele matches with GRCh37 reference."
 fi
 
-bcftools index $OUTPUT/$DATASTEM"_afterQC-updatedChr_vcf.vcf.gz"
+bcftools index $OUTPUT/$DATASTEM"_afterQC-updatedChr.vcf.gz"
 if [ "$?" != "0" ]; then
   error_exit "Error while indexing the vcf file."
 fi

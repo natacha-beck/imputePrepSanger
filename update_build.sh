@@ -26,27 +26,42 @@ input_dir=$2
 strand_file=$3
 outstem=$4
 output=$5
+remove_multi=$6
 echo Input stem is $stem
 echo Strand file is $strand_file
 echo Output stem is $outstem
 
 #Cut the strand file into a file for flipping strand when necessary
 flip_file=$output/$strand_file.flip
-cat $input_dir/$strand_file | awk '{if ($5=="-") print $0}' | cut -f 1 > $flip_file
+cat $input_dir/$strand_file".strand" | awk '{if ($5=="-") print $0}' | cut -f 1 > $flip_file
 
 #Create a file that compare Will's position to position in Plink file, keep variant with difference in position less than 10bp
 pos_file=$output/$strand_file.pos
-awk -f checkPositions.awk $stem".bim" $input_dir/$strand_file > $pos_file
+awk -f checkPositions.awk $stem".bim" $input_dir/$strand_file".strand" > $pos_file
+if ! [ -z  "$remove_multi" ]; then
+  rem_file=$output/$strand_file.rem
+  cat $input_dir/$strand_file".multiple" | cut -f 1 > $rem_file 
+fi
 
 #Because Plink only allows you to update one attribute at a time, we need lots of temp
 #Plink files
 temp_prefix=TEMP_FILE_XX72262628_
 temp1=$temp_prefix"1"
+if ! [ -z  "$remove_multi" ]; then
+  temp2=$temp_prefix"2"
+fi
 
 #1. Apply the flip
 $PLINK_EXEC  --allow-no-sex --bfile $stem --flip $flip_file --make-bed --out $temp1
-#2. Extract the SNPs in the pos file, we don't want SNPs that aren't in the strand file
-$PLINK_EXEC  --allow-no-sex --bfile $temp1 --extract $pos_file --make-bed --out $outstem
+if ! [ -z  "$remove_multi" ]; then
+  #2. Extract the SNPs in the pos file, we don't want SNPs that aren't in the strand file
+  $PLINK_EXEC  --allow-no-sex --bfile $temp1 --extract $pos_file --make-bed --out $temp2
+  #3. Extract the SNPs in the pos file, we don't want SNPs that aren't in the strand file
+  $PLINK_EXEC  --allow-no-sex --bfile $temp2 --exclude $rem_file --make-bed --out $outstem
+else
+  #2. Extract the SNPs in the pos file, we don't want SNPs that aren't in the strand file
+  $PLINK_EXEC  --allow-no-sex --bfile $temp1 --extract $pos_file --make-bed --out $outstem
+fi
 
 #Now delete any temporary artefacts produced
 rm -f $temp_prefix*

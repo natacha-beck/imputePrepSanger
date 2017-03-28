@@ -35,34 +35,34 @@ echo -e "Position Matches: \n"                                                  
 grep "ID matches: HRC"                         $resultsScreen                                               >>$finalReport
 grep "ID Doesn't match: HRC"                   $resultsScreen                                               >>$finalReport
 grep "Total Position Matches:"                 $resultsScreen                                               >>$finalReport
-grep "ID Match"                                $resultsScreen                                               >>$finalReport
+grep "ID Match:"                               $resultsScreen                                               >>$finalReport
 grep "Different position to: HRC"              $resultsScreen                                               >>$finalReport
 grep "No Match to: HRC"                        $resultsScreen                                               >>$finalReport
 grep "Skipped (X, XY, Y, MT):"                 $resultsScreen                                               >>$finalReport
 grep "Total in bim file:"                      $resultsScreen                                               >>$finalReport
-grep "Total processed"                         $resultsScreen                                               >>$finalReport
+grep "Total processed:"                        $resultsScreen                                               >>$finalReport
 echo -e "\n"                                                                                                >>$finalReport
 grep "Indels (ignored in r1):"                 $resultsScreen                                               >>$finalReport
 echo -e "\n"                                                                                                >>$finalReport
 grep "SNPs not changed:"                       $resultsScreen                                               >>$finalReport
 grep "SNPs to change ref alt:"                 $resultsScreen                                               >>$finalReport
-grep "Strand ok:"                              $resultsScreen                                               >>$finalReport
-grep "Total Strand ok :"                       $resultsScreen                                               >>$finalReport
+grep "Strand ok :"                             $resultsScreen                                               >>$finalReport
+grep "Total Strand ok:"                        $resultsScreen                                               >>$finalReport
 echo -e "\n"                                                                                                >>$finalReport
 grep "Strand to change:"                       $resultsScreen                                               >>$finalReport
 grep "Total checked:"                          $resultsScreen                                               >>$finalReport
-grep "Total checked Strand :"                  $resultsScreen                                               >>$finalReport
+grep "Total checked Strand:"                   $resultsScreen                                               >>$finalReport
 grep "Total removed for allele Frequency diff" $resultsScreen                                               >>$finalReport
-grep "Palindromic SNPs with Freq > 0.4:"       $resultsScreen                                               >>$finalReport
+grep "Palindromic SNPs with Freq > 0.4 "       $resultsScreen                                               >>$finalReport
 echo -e "\n"                                                                                                >>$finalReport
-grep "ID and allele mismatching"               $resultsScreen                                               >>$finalReport
+grep "ID and allele mismatching:"              $resultsScreen                                               >>$finalReport
 grep "Non Matching alleles:"                   $resultsScreen                                               >>$finalReport
 grep "Duplicates removed:"                     $resultsScreen                                               >>$finalReport
-echo -e "\n" >>$finalReport
+echo -e "\n"                                                                                                >>$finalReport
 
 echo -e $sep                                                                                                >>$finalReport
 echo -e "The pipeline was run successfully.\n"                                                              >>$finalReport
-echo -e "The resulting vcf file is named: $1/$2_afterQC-updatedChr_vcf.vcf.gz\n"                            >>$finalReport
+echo -e "The resulting vcf file is named: $1/$2_afterQC-updatedChr.vcf.gz\n"                            >>$finalReport
 echo -e $sep                                                                                                >>$finalReport
 ##
 

@@ -54,8 +54,8 @@ use strict;
 use warnings;
 use File::Basename;
 use Getopt::Long;
-use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
-use Term::ReadKey   qw/ GetTerminalSize /;
+#use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
+#use Term::ReadKey   qw/ GetTerminalSize /;
 
 $| = 1;
 
@@ -248,17 +248,15 @@ while (<FRQ>)
 close FRQ;
 
 #open all the output files for the different plink update lists
-my $filename = fileparse($bim_file);
-$filename =~ /(.*)\.bim$/;
-my $file_stem = $1;
+my ($file_stem, $file_path, $type) = fileparse($bim_file, qr{\.bim});
 
-my $forcefile = 'Force-Allele1-'.$file_stem.'-'.$referenceused.'.txt';
+my $forcefile = $file_path.'Force-Allele1-'.$file_stem.'-'.$referenceused.'.txt';
 open F, ">$forcefile" or die $!;
 
-my $strandfile = 'Strand-Flip-'.$file_stem.'-'.$referenceused.'.txt';
+my $strandfile = $file_path.'Strand-Flip-'.$file_stem.'-'.$referenceused.'.txt';
 open S, ">$strandfile" or die $!;
 
-my $logfilename = 'LOG-'.$file_stem.'-'.$referenceused.'.txt';
+my $logfilename = $file_path.'LOG-'.$file_stem.'-'.$referenceused.'.txt';
 open L, ">$logfilename" or die $!;
 
 print L "Options Set:\n";
@@ -285,19 +283,19 @@ if ($verbose)
  }
 print L "\n\n";
 
-my $idfile = 'ID-'.$file_stem.'-'.$referenceused.'.txt';
+my $idfile = $file_path.'ID-'.$file_stem.'-'.$referenceused.'.txt';
 open I, ">$idfile" or die $!;
 
-my $posfile = 'Position-'.$file_stem.'-'.$referenceused.'.txt';
+my $posfile = $file_path.'Position-'.$file_stem.'-'.$referenceused.'.txt';
 open P, ">$posfile" or die $!;
 
-my $chrfile = 'Chromosome-'.$file_stem.'-'.$referenceused.'.txt';
+my $chrfile = $file_path.'Chromosome-'.$file_stem.'-'.$referenceused.'.txt';
 open C, ">$chrfile" or die $!;
 
-my $excludefile = 'Exclude-'.$file_stem.'-'.$referenceused.'.txt';
+my $excludefile = $file_path.'Exclude-'.$file_stem.'-'.$referenceused.'.txt';
 open E, ">$excludefile" or die $!;
 
-my $plotfile = 'FreqPlot-'.$file_stem.'-'.$referenceused.'.txt';
+my $plotfile = $file_path.'FreqPlot-'.$file_stem.'-'.$referenceused.'.txt';
 open PL, ">$plotfile" or dir $!;
 
 # shell script for running plink
@@ -309,7 +307,7 @@ chomp($plink);
 my $tempcount = 1;
 my $tempfile = 'TEMP'.$tempcount;
 #remove SNPs
-print SH "$plink --bfile $file_stem --exclude $excludefile --make-bed --out $tempfile\n";
+print SH "$plink --bfile $file_path$file_stem --exclude $excludefile --make-bed --out $tempfile\n";
 
 #change chromosome
 print SH "$plink --bfile $tempfile --update-map $chrfile --update-chr --make-bed --out ";
@@ -338,7 +336,7 @@ print SH "$tempfile\n";
 
 #force alleles
 my $newfile = $file_stem.'-updated';
-print SH "$plink --bfile $tempfile --reference-allele $forcefile --make-bed --out $newfile\n";
+print SH "$plink --bfile $tempfile --reference-allele $forcefile --make-bed --out $file_path$newfile\n";
 
 #split into per chromosome files
 # for (my $i = 1; $i <= 23; $i++)
@@ -559,34 +557,34 @@ my $pos_check = $idmatch + $idmismatch;
 my $worked_check = $idmatch + $idmismatch + $mismatchpos;
 my $worked_check1 = $strand + $nostrand;
 
-print "Matching to $referenceused\n";
-print "\nPosition Matches\n ID matches $referenceused $idmatch\n ID Doesn't match $referenceused $idmismatch\n Total Position Matches $pos_check\nID Match\n Different position to $referenceused $mismatchpos\nNo Match to $referenceused $nothing\nSkipped (X, XY, Y, MT) $altchr\nTotal in bim file $total\nTotal processed $check_total\n\n";
-print "Indels (ignored in r1) $indel\n\n";
-print "SNPs not changed $unchanged\nSNPs to change ref alt $nomatch\nStrand ok $strand\nTotal Strand ok $check_total1\n\n";
-print "Strand to change $nostrand\nTotal checked $worked_check\nTotal checked Strand $worked_check1\n";
+print "Matching to: $referenceused\n";
+print "\nPosition Matches\n ID matches: $referenceused $idmatch\n ID Doesn't match: $referenceused $idmismatch\n Total Position Matches: $pos_check\nID Match:\n Different position to: $referenceused $mismatchpos\nNo Match to: $referenceused $nothing\nSkipped (X, XY, Y, MT): $altchr\nTotal in bim file: $total\nTotal processed: $check_total\n\n";
+print "Indels (ignored in r1): $indel\n\n";
+print "SNPs not changed: $unchanged\nSNPs to change ref alt: $nomatch\nStrand ok : $strand\nTotal Strand ok: $check_total1\n\n";
+print "Strand to change: $nostrand\nTotal checked: $worked_check\nTotal checked Strand: $worked_check1\n";
 if (!$noexclude)
  {
  print "Total removed for allele Frequency diff > $threshold $allelediff\n";
  }
 print "Palindromic SNPs with Freq > 0.4 $palin\n\n";
-print "\nNon Matching alleles $nomatchalleles\n";
-print "ID and allele mismatching $idallelemismatch; where $referenceused is . $hrcdot\n";
-print "Duplicates removed $duplicate\n";
+print "\nNon Matching alleles: $nomatchalleles\n";
+print "ID and allele mismatching: $idallelemismatch; where $referenceused is . $hrcdot\n";
+print "Duplicates removed: $duplicate\n";
 
 #print L "Total bim File Rows $total\n";
-print L "Matching to $referenceused\n";
-print L "\nPosition Matches\n ID matches $referenceused $idmatch\n ID Doesn't match $referenceused $idmismatch\n Total Position Matches $pos_check\nID Match\n Different position to $referenceused $mismatchpos\nNo Match to $referenceused $nothing\nSkipped (X, XY, Y, MT) $altchr\nTotal in bim file $total\nTotal processed $check_total\n\n";
-print L "Indels (ignored in r1) $indel\n\n";
-print L "SNPs not changed $unchanged\nSNPs to change ref alt $nomatch\nStrand ok $strand\nTotal Strand ok $check_total1\n\n";
-print L "Strand to change $nostrand\nTotal checked $worked_check\nTotal checked Strand $worked_check1\n";
+print L "Matching to: $referenceused\n";
+print L "\nPosition Matches\n ID matches: $referenceused $idmatch\n ID Doesn't match: $referenceused $idmismatch\n Total Position Matches: $pos_check\nID Match\n Different position to: $referenceused $mismatchpos\nNo Match to: $referenceused $nothing\nSkipped (X, XY, Y, MT): $altchr\nTotal in bim file: $total\nTotal processed: $check_total\n\n";
+print L "Indels (ignored in r1): $indel\n\n";
+print L "SNPs not changed: $unchanged\nSNPs to change ref alt: $nomatch\nStrand ok: $strand\nTotal Strand ok: $check_total1\n\n";
+print L "Strand to change: $nostrand\nTotal checked: $worked_check\nTotal checked Strand: $worked_check1\n";
 if (!$noexclude)
  {
  print L "Total removed for allele Frequency diff > $threshold $allelediff\n";
  }
 print L "Palindromic SNPs with Freq > 0.4 $palin\n\n";
-print L "\nNon Matching alleles $nomatchalleles\n";
-print L "ID and allele mismatching $idallelemismatch; where $referenceused is . $hrcdot\n";
-print L "Duplicates removed $duplicate\n";
+print L "\nNon Matching alleles: $nomatchalleles\n";
+print L "ID and allele mismatching: $idallelemismatch; where $referenceused is . $hrcdot\n";
+print L "Duplicates removed: $duplicate\n";
 
 #close the file with the allele frequencies
 close PL;
@@ -795,12 +793,12 @@ sub check_strand
 
 sub getwidth
  {
- #my $output = `stty size`;
- #my @rowcols = split(/\s/, $output);
- #my $cols = $rowcols[1];
+ my $output = `stty size`;
+ my @rowcols = split(/\s/, $output);
+ my $cols = $rowcols[1];
 
- my @winsize = &GetTerminalSize(\*STDOUT);
- my ($cols, $rows, $xpix, $ypix) = @winsize;
+ #my @winsize = &GetTerminalSize(\*STDOUT);
+ #my ($cols, $rows, $xpix, $ypix) = @winsize;
 
  if (!$cols)
   {
@@ -863,17 +861,17 @@ sub read_hrc
  {
  my $file = $_[0];
  #check if file has .gz suffix
- my $zipped = checkgz($file);
+ #my $zipped = checkgz($file);
  my $z;
 
- if ($zipped)
-  {
-  $z = new IO::Uncompress::Gunzip "$file" or die "IO::Uncompress::Gunzip failed: $GunzipError\n";
-  }
- else
-  {
+ #if ($zipped)
+  #{
+  #$z = new IO::Uncompress::Gunzip "$file" or die "IO::Uncompress::Gunzip failed: $GunzipError\n";
+  #}
+ #else
+  #{
   open $z, "$file" or die $!;
-  }
+  #}
 
  while (<$z>)
   {
@@ -912,18 +910,18 @@ sub read_kg
  my $freqcol;
  my $typecol = 0;
 
- my $zipped = checkgz($file);
+ #my $zipped = checkgz($file);
  my $z;
 
- if ($zipped)
-  {
-  print "Reference Panel is zipped\n";
-  $z = new IO::Uncompress::Gunzip "$file" or die "IO::Uncompress::Gunzip failed: $GunzipError\n";
-  }
- else
-  {
+ #if ($zipped)
+  #{
+  #print "Reference Panel is zipped\n";
+  #$z = new IO::Uncompress::Gunzip "$file" or die "IO::Uncompress::Gunzip failed: $GunzipError\n";
+  #}
+ #else
+  #{
   open $z, "$file" or die $!;
-  }
+  #}
 
  my $header = <$z>;
  chomp $header;

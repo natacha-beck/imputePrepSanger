@@ -43,24 +43,33 @@ if ! [ -z  "$remove_multi" ]; then
   cat $input_dir/$strand_file".multiple" | cut -f 1 > $rem_file 
 fi
 
+# We only want to keep variant in strand file
+in_file=$output/$strand_file.infile
+cat $input_dir/$strand_file".strand" | cut -f 1 > $in_file
+
 #Because Plink only allows you to update one attribute at a time, we need lots of temp
 #Plink files
 temp_prefix=TEMP_FILE_XX72262628_
 temp1=$temp_prefix"1"
+temp2=$temp_prefix"2"
 if ! [ -z  "$remove_multi" ]; then
-  temp2=$temp_prefix"2"
+  temp3=$temp_prefix"3"
 fi
 
 #1. Apply the flip
 $PLINK_EXEC  --allow-no-sex --bfile $stem --flip $flip_file --make-bed --out $temp1
 if ! [ -z  "$remove_multi" ]; then
-  #2. Extract the SNPs in the pos file, we don't want SNPs that aren't in the strand file
-  $PLINK_EXEC  --allow-no-sex --bfile $temp1 --extract $pos_file --make-bed --out $temp2
-  #3. Extract the SNPs in the pos file, we don't want SNPs that aren't in the strand file
-  $PLINK_EXEC  --allow-no-sex --bfile $temp2 --exclude $rem_file --make-bed --out $outstem
+  #2. Exclude the SNPs in the pos file, we don't want SNPs more than 10bp difference between Illumina and strand file
+  $PLINK_EXEC  --allow-no-sex --bfile $temp1 --exclude $pos_file --make-bed --out $temp2
+  #3. Exclude the SNPs in the .multiple file, we don't want SNPs that aren't in the .multiple file
+  $PLINK_EXEC  --allow-no-sex --bfile $temp2 --exclude $rem_file --make-bed --out $temp3
+  #4. Extract the SNPs in the strand file, we don't want SNPs that aren't in the strand file
+  $PLINK_EXEC  --allow-no-sex --bfile $temp3 --extract $in_file --make-bed --out $outstem
 else
-  #2. Extract the SNPs in the pos file, we don't want SNPs that aren't in the strand file
-  $PLINK_EXEC  --allow-no-sex --bfile $temp1 --extract $pos_file --make-bed --out $outstem
+  #2. Exclude the SNPs in the pos file, we don't want SNPs more than 10bp difference between Illumina and strand file
+  $PLINK_EXEC  --allow-no-sex --bfile $temp1 --exclude $pos_file --make-bed --out $temp2
+  #3. Extract the SNPs in the strand file, we don't want SNPs that aren't in the strand file
+  $PLINK_EXEC  --allow-no-sex --bfile $temp2 --extract $in_file --make-bed --out $outstem
 fi
 
 #Now delete any temporary artefacts produced

@@ -16,10 +16,15 @@ echo -e $sep                                                                    
 
 #exit
 
-echo -e "The number of SNPs flipped when using Will Rayner strand file and the number of SNPs remaining.\n" >>$finalReport
+echo -e "The number of SNPs flipped when using Will Rayner strand file:"                                    >>$finalReport
 # This is the number of SNPs kept after matching with Will strand file
 grep "SNPs flipped" $resultsScreen | grep -n 'SNPs flipped' | grep "1:.*SNPs flipped" | cut -c11-           >>$finalReport
-grep "extract:"     $resultsScreen | cut -c11-                                                              >>$finalReport
+echo -e "The number of variants remaining after removing the ones with position difference > 10bp between strand and input files:"  >>$finalReport
+grep "exclude:"      $resultsScreen | grep -n 'exclude:' | grep "1:.*exclude" | cut -c14-                   >>$finalReport
+echo -e "The number of variants remaining after removing the ones present in the .multiple file:"           >>$finalReport
+grep "exclude:"      $resultsScreen | grep -n 'exclude:' | grep "2:.*exclude" | cut -c14-                   >>$finalReport
+echo -e "The number of variants remaining (keeping only the ones in the strand file):"                      >>$finalReport
+grep "extract:"     $resultsScreen | cut -c12-                                                              >>$finalReport
 echo -e $sep                                                                                                >>$finalReport
 
 # This is the number of SNPs removed in the QC steps. 

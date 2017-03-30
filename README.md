@@ -82,11 +82,11 @@ When running the script 10 arguments are needed:
 
 An example of the command line to run the pipeline with the flag to remove variants in the .multiply file.
 
-./imputePrep_script.sh genoPlink PsychChip_15048346_B-b37 0.10 0.10 0.05 5e-8 ../new_Imputation/sangerPipeline/ressources/vardata fixData results TRUE
+./imputePrep_script.sh genoPlink PsychChip_15048346_B-b37 0.10 0.10 0.05 5e-8 ../folder/foo/vardata fixData results TRUE
 
 An example of the command line to run the pipeline without the flag to remove variants in the .multiply file.
 
-./imputePrep_script.sh genoPlink PsychChip_15048346_B-b37 0.10 0.10 0.05 5e-8 ../new_Imputation/sangerPipeline/ressources/vardata fixData results
+./imputePrep_script.sh genoPlink PsychChip_15048346_B-b37 0.10 0.10 0.05 5e-8 ../folder/foo/vardata fixData results
 
 
 

@@ -36,6 +36,10 @@ Note that for now, the present pipeline creates an input file for imputation usi
 
 Note that the thresholds mentionned above at step 3 are "hard coded" (are not yet option/parameters), and therefore should be change in the perl script directly if needed. While the thresholds at step 2 are parameters to be passed in the command line, we suggest some values but these should take into account the data (number of samples, etc.).  
 
+#### Updating the strand using Will Rayner's files
+
+Will Rayner has created strand files for common genotyping chips on a variety of genome builds. These where creating using BLAT, to map the nerboring sequences (obtained from annotation files) to the reference human genome. In some situation, the positions in the Plink files does not match the ones in the strand file, when the difference is larger than 10bp we remove these variants since we cannot be confident in the strand. Will aslo gives a file that list variants that had more than 1 high quality match (>90%) to the genome. It might be a good idea to remove these variants since it means that these probes bind to different parts of the genomes. There is an option in this pipeline to do so.     
+
 ### How to run the pipeline
 
 This script was created to be used on CBRAIN (https://portal.cbrain.mcgill.ca) via a docker container (see dockerhub repo: eauforest/imputeprepsanger). For this reason it assumes that the input files are in specific folders and the command line takes a large number of arguments. 
@@ -62,7 +66,7 @@ The input files needed are:
 
 Files from points 1 and 2 need to be place in the VARDATA folder, while the remaining files need to be place in the FIXDATA folder (see command line arguments). Note that these folders can have any names. 
 
-It is important to have the version of the .strand file corresponding to the genotype array used, and to choose the version corresponding to build 37 (to match HRC reference pannel). Note that Will Rayner's files assume that the alleles are on the TOP strand. The matching .multiply file need to be added if the option to remove variants that had more than one quality match to the genome is used. It might be a good idea to remove these variants since it might means that these probes can bind to different parts of the genomes. 
+It is important to have the version of the .strand file corresponding to the genotype array used, and to choose the version corresponding to build 37 (to match HRC reference pannel). Note that Will Rayner's files assume that the alleles are on the TOP strand. The matching .multiply file need to be added if the option to remove variants that had more than one quality match to the genome is used. 
 
 
 #### Command line arguments

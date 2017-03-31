@@ -77,8 +77,7 @@ if [ "$?" != "0" ]; then
   error_exit "Error while renaming the chromosome."
 fi
 
-cp $FIXDATA/"human_g1k_v37.fasta" $OUTPUT/ 
-bcftools norm --check-ref e -f $OUTPUT/"human_g1k_v37.fasta" $OUTPUT/$DATASTEM"_afterQC-updatedChr.vcf.gz" -o $OUTPUT/$DATASTEM"_checkRef"
+bcftools norm --check-ref e -f $FIXDATA/"human_g1k_v37.fasta" $OUTPUT/$DATASTEM"_afterQC-updatedChr.vcf.gz" -o $OUTPUT/$DATASTEM"_checkRef"
 if [ "$?" != "0" ]; then
   error_exit "Error while checking that the REF allele matches with GRCh37 reference."
 fi

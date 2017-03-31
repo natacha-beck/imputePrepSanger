@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "This is a script to create vcf files for imputation on the Sanger servers"
+echo "ImputePrepSanger version 1.1: This is a script to create vcf files for imputation on the Sanger servers"
 
 DATASTEM=$1
 STRANDFILE=$2

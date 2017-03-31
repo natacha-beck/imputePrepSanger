@@ -3,7 +3,7 @@ echo "This is a script to create the report from the imputePrepSanger pipeline"
 
 sep="========================================================================="
 intro="\nThis is a report summarizing the different steps performed.\nDate: "
-intro2="\n You are using version 1.0 of the pipeline:\n it uses HRCr.1 sites list and the REF allele are matched to GRCh37 \n"
+intro2="\n You are using version 1.1 of the pipeline:\n it uses HRCr.1 sites list and the REF allele are matched to GRCh37 \n"
 today=$(date)
 stringOut="$sep$intro$today$intro2 \n$sep"
 resultsScreen=$1"/resultsScreen.txt"

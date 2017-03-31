@@ -38,7 +38,7 @@ Note that the thresholds mentionned above at step 3 are "hard coded" (are not ye
 
 #### Updating the strand using Will Rayner's files
 
-Will Rayner has created strand files for common genotyping chips on a variety of genome builds. These where creating using BLAT, to map the nerboring sequences (obtained from annotation files) to the reference human genome. In some situation, the positions in the Plink files does not match the ones in the strand file, when the difference is larger than 10bp we remove these variants since we cannot be confident in the strand. Will aslo gives a file that list variants that had more than 1 high quality match (>90%) to the genome. It might be a good idea to remove these variants since it means that these probes bind to different parts of the genomes. There is an option in this pipeline to do so.     
+Will Rayner has created strand files for common genotyping chips on a variety of genome builds. These were creating using BLAT, to map the neighbouring sequences (obtained from annotation files) to the reference human genome. In some situation, the position in the Plink files does not match the ones in the strand file, when the difference is larger than 10bp we remove these variants since we cannot be confident in the strand. Will also gives a file that list variants that had more than 1 high quality match (>90%) to the genome. It might be a good idea to remove these variants since it means that these probes bind to different parts of the genomes. There is an option in this pipeline to do so. 
 
 ### How to run the pipeline
 

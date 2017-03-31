@@ -1,6 +1,6 @@
 # imputePrepSanger
 
-This pipeline takes plink genotype files, and adjusts the strand, the positions, the reference alleles, performs quality control steps and output a vcf file that satisfies the requirement for submission to the Sanger Imputation Service (https://imputation.sanger.ac.uk/) for imputation using the Haplotype Reference Consortim reference panel. 
+This pipeline takes plink genotype files, and adjusts the strand, the positions, the reference alleles, performs quality control steps and output a vcf file that satisfies the requirement for submission to the Sanger Imputation Service (https://imputation.sanger.ac.uk/) for imputation using the Haplotype Reference Consortium reference panel. 
 
 
 ## Pipeline for creation of input data.
@@ -9,11 +9,11 @@ The goal of this pipeline is to facilitate the creation of input files needed fo
 
 A description of the Sanger Imputation Service can be found at the end of this document. 
 
-Note that for now, the present pipeline creates an input file for imputation using the HRC refenrence panel only. 
+Note that for now, the present pipeline creates an input file for imputation using the HRC reference panel only. 
 
 ### Description of the pipeline
 
-1.  Strand are updated using the files from Will Rayner website (http://www.well.ox.ac.uk/~wrayner/strand/). There is also the option to remove variants that had more than one high quality match to the genome. 
+1.  Strands are updated using the files from Will Rayner website (http://www.well.ox.ac.uk/~wrayner/strand/). There is also the option to remove variants that had more than one high-quality match to the genome. 
 2.  Quality Control steps (using plink):
     1.  maximum per person missing (--mind, we suggest 0.1).
     2.  maximum per SNP missing (--geno, we suggest 0.1).
@@ -34,11 +34,11 @@ Note that for now, the present pipeline creates an input file for imputation usi
 6.  Using BCFTOOLS run a check to make sure the reference alleles match with the ref alleles in HRC panel.
 7.  Using BCFTOOLS make sure the positions are sorted (using the index function).
 
-Note that the thresholds mentionned above at step 3 are "hard coded" (are not yet option/parameters), and therefore should be change in the perl script directly if needed. While the thresholds at step 2 are parameters to be passed in the command line, we suggest some values but these should take into account the data (number of samples, etc.).  
+Note that the thresholds mentioned above at step 3 are "hard-coded" (are not yet options/parameters), and therefore should be changed in the perl script directly, if needed. While the thresholds at step 2 are parameters to be passed in the command line, we suggest some values but these should take into account the data (number of samples, etc.).  
 
 #### Updating the strand using Will Rayner's files
 
-Will Rayner has created strand files for common genotyping chips on a variety of genome builds. These were creating using BLAT, to map the neighbouring sequences (obtained from annotation files) to the reference human genome. In some situation, the position in the Plink files does not match the ones in the strand file, when the difference is larger than 10bp we remove these variants since we cannot be confident in the strand. Will also gives a file that list variants that had more than 1 high quality match (>90%) to the genome. It might be a good idea to remove these variants since it means that these probes bind to different parts of the genomes. There is an option in this pipeline to do so. 
+Will Rayner has created strand files for common genotyping chips on a variety of genome builds. These were creating using BLAT, to map the neighbouring sequences (obtained from annotation files) to the reference human genome. In some situation, the position in the Plink files does not match the ones in the strand file, when the difference is greater than 10bp we remove these variants since we cannot be confident in the strand. Will also gives a file that list variants that had more than 1 high quality match (>90%) to the genome. It might be a good idea to remove these variants since it means that these probes bind to different parts of the genomes. There is an option in this pipeline to do so. 
 
 ### How to run the pipeline
 
@@ -59,22 +59,22 @@ The following softwares are needed to run the script:
 The input files needed are:
 
 1. Genotype data in Plink .map and .ped format (build 37). 
-2. The corresponding .strand file (optionally also the .multiply file) from Will Rayner website: http://www.well.ox.ac.uk/~wrayner/strand/. 
-3. The HRC.r1-1.GRCh37.wgs.mac5.sites.tab file (http://www.haplotype-reference-consortium.org/site)
-4. The GRCh37 reference fasta (ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz)
-5. A file to update the chromosome names from plink to Ensembl https://imputation.sanger.ac.uk/www/plink2ensembl.txt
+2. The corresponding .strand file (optionally also the .multiply file) from Will Rayner website (http://www.well.ox.ac.uk/~wrayner/strand/). 
+3. The HRC.r1-1.GRCh37.wgs.mac5.sites.tab file (http://www.haplotype-reference-consortium.org/site).
+4. The GRCh37 reference fasta (ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz).
+5. A file to update the chromosome names from plink to Ensembl (https://imputation.sanger.ac.uk/www/plink2ensembl.txt).
 
-Files from points 1 and 2 need to be place in the VARDATA folder, while the remaining files need to be place in the FIXDATA folder (see command line arguments). Note that these folders can have any names. 
+Files of points 1 and 2 need to be placed in the VARDATA folder, while the remaining files need to be placed in the FIXDATA folder (see command line arguments). Note that these folders can have any names. 
 
-It is important to have the version of the .strand file corresponding to the genotype array used, and to choose the version corresponding to build 37 (to match HRC reference pannel). Note that Will Rayner's files assume that the alleles are on the TOP strand. The matching .multiply file need to be added if the option to remove variants that had more than one quality match to the genome is used. 
+It is important to have the version of the .strand file corresponding to the genotype array used, and to choose the version corresponding to build 37 (to match HRC reference panel). Note that Will Rayner's files assume that the alleles are on the TOP strand. The matching .multiply file need to be added if the option to remove variants that had more than one quality match to the genome is used. 
 
 
 #### Command line arguments
 
-When running the script 10 arguments are needed:
+When running the script, 10 arguments are needed:
 
 1. The name of the plink files without the extension (eg.: "foo" for the files foo.map and foo.ped)
-2. The name of the .strand file withitout the extension (note that this should match also the name of the .muliply file is applicable). 
+2. The name of the .strand file without the extension (note that this should match also the name of the .muliply file if applicable). 
 3. The maximum per person missing (--mind, we suggest 0.1).
 4. The maximum per SNP missing (--geno, we suggest 0.1).
 5. The minor allele frequency (--maf, we suggest 0.05).
@@ -84,21 +84,22 @@ When running the script 10 arguments are needed:
 9. The desired name for the output folder (this folder will be created when running the pipeline).
 10. A flag indicating if variants appearing in the .multiply file should be removed. Leave blank if FALSE, or write any string for TRUE. 
 
-An example of the command line to run the pipeline with the flag to remove variants in the .multiply file.
+An example of the command line to run the pipeline with the flag to remove variants present in the .multiply file.
 
-./imputePrep_script.sh genoPlink PsychChip_15048346_B-b37 0.10 0.10 0.05 5e-8 ../folder/foo/vardata fixData results TRUE
+./imputePrep_script.sh genoPlink PsychChip_15048346_B-b37 0.10 0.10 0.05 5e-8 path/and/name/of/vardata/folder path/and/name/of/fixdata/folder nameOfResultsFolder TRUE
 
-An example of the command line to run the pipeline without the flag to remove variants in the .multiply file.
+An example of the command line to run the pipeline without the flag to remove variants present in the .multiply file.
 
-./imputePrep_script.sh genoPlink PsychChip_15048346_B-b37 0.10 0.10 0.05 5e-8 ../folder/foo/vardata fixData results
+./imputePrep_script.sh genoPlink PsychChip_15048346_B-b37 0.10 0.10 0.05 5e-8 path/and/name/of/vardata/folder path/and/name/of/fixdata/folder nameOfResultsFolder
 
 
 
 #### Ouput files
 
-Two folders containing the results are created: one with the name given at point 9 above, and the other the same + "_FullOutput". The first folder will contain the resulting .vcf files to be sent to the Sanger, a text file called FinalReport.txt, which summarise the different steps, the number of variants removed and why, and a resultsScreen.txt which contains all the information appearing at the screen when running the pipeline. 
+Two folders containing the results are created: one with the name given at point 9 above, and the other the same + "_FullOutput". The first folder will contain the resulting .vcf files to be sent to the Sanger, a text file called FinalReport.txt, which summarize the different steps, the number of variants removed and why, and a resultsScreen.txt which contains all the information appearing at the screen when running the pipeline. 
 
-The second folder contains all intermediate files created during the pipeline. These can be deleted, but can also help undertand some details if necessary. 
+The second folder contains all intermediate files created during the pipeline. These can be deleted, but can also help understand some details if necessary. For example, the file that will have the same name as the strand file but with the extension .pos contains all the variants removed due to a difference larger than 10bp between the position in the strand file and in the input Plink file.
+
 
 
 ## The Sanger Imputation Service

@@ -62,7 +62,8 @@ grep "Palindromic SNPs with Freq > 0.4 "       $resultsScreen                   
 echo -e "\n"                                                                                                >>$finalReport
 grep "ID and allele mismatching:"              $resultsScreen                                               >>$finalReport
 grep "Non Matching alleles:"                   $resultsScreen                                               >>$finalReport
-grep "Duplicates removed:"                     $resultsScreen                                               >>$finalReport
+grep "Number of duplicates removed:"           $resultsScreen                                               >>$finalReport
+grep "The duplicates removed can be found in"  $resultsScreen                                               >>$finalReport
 echo -e "\n"                                                                                                >>$finalReport
 
 echo -e $sep                                                                                                >>$finalReport

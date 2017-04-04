@@ -295,6 +295,9 @@ open C, ">$chrfile" or die $!;
 my $excludefile = $file_path.'Exclude-'.$file_stem.'-'.$referenceused.'.txt';
 open E, ">$excludefile" or die $!;
 
+my $duplicatefile = $file_path.'Duplicate-'.$file_stem.'-'.$referenceused.'.txt';
+open D, ">$duplicatefile" or die $!;
+
 my $plotfile = $file_path.'FreqPlot-'.$file_stem.'-'.$referenceused.'.txt';
 open PL, ">$plotfile" or dir $!;
 
@@ -335,8 +338,50 @@ print SH "$tempfile\n";
 #print SH "$tempfile\n";
 
 #force alleles
+print SH "$plink --bfile $tempfile --reference-allele $forcefile --make-bed --out ";
+$tempcount++;
+$tempfile = 'TEMP'.$tempcount;
+print SH "$tempfile\n";
+
+##Deal with duplicate
+#First we create ped file
+#print SH "plink --bfile $tempfile --recode --tab --out";
+#$tempcount++;
+#$tempfile = 'TEMP'.$tempcount;
+#print SH "$tempfile\n";
+
+print SH "$plink --bfile $tempfile --list-duplicate-vars ids-only --reference-allele $forcefile --make-bed --out ";
+$tempcount++;
+$tempfile = 'TEMP'.$tempcount;
+print SH "$tempfile\n";
+my $listDupli = $tempfile.'.dupvar';
+print SH "cp $listDupli duplicatesPairs.txt \n";
+
+my $dupliPedFile = 'TEMP_dupliPed';
+print SH "$plink --bfile $tempfile --extract $listDupli --reference-allele $forcefile --recode --tab --out $dupliPedFile \n ";
+
+print SH "$plink --bfile $tempfile --exclude $listDupli --reference-allele $forcefile --make-bed --out ";
+$tempcount++;
+$tempfile = 'TEMP'.$tempcount;
+print SH "$tempfile\n";
+
+
+my $resultDuplicate_file = "TEMP_dupliPed_2.ped";
+
+my $dupliPedFileExt = $dupliPedFile.'.ped';
+print SH "awk -f updateDuplicates.awk $dupliPedFileExt > $resultDuplicate_file \n";
+my $rem_file = $file_path.'duplicatesRemoved.txt';
+print SH "cat $listDupli | cut -d ' ' -f 2 > $rem_file \n";
+print SH "$plink -file $dupliPedFile --exclude $rem_file  --reference-allele $forcefile --make-bed --out ";
+$tempcount++;
+my $tempfile2 = 'TEMP'.$tempcount;
+print SH "$tempfile2\n";
+
+
+#Now we merge the files
 my $newfile = $file_stem.'-updated';
-print SH "$plink --bfile $tempfile --reference-allele $forcefile --make-bed --out $file_path$newfile\n";
+print SH "$plink -bfile $tempfile --bmerge $tempfile2  --make-bed --out $file_path$newfile \n";
+
 
 #split into per chromosome files
 # for (my $i = 1; $i <= 23; $i++)
@@ -344,8 +389,12 @@ print SH "$plink --bfile $tempfile --reference-allele $forcefile --make-bed --ou
 #  my $perchrfile = $newfile.'-chr'.$i;
 #  print SH "$plink --bfile $newfile --reference-allele $forcefile --make-bed --chr $i --out $perchrfile\n";
 #  }
+my $stringTMP = "Number of duplicates removed: ";
 my $newfilevcf = $file_stem.'-updated_vcf';
-print SH "$plink --bfile $file_path$newfile  --a2-allele $forcefile --recode vcf bgz --keep-allele-order --out $file_path$newfilevcf\n";
+print SH "$plink --bfile $file_path$newfile  --a2-allele $forcefile --recode vcf bgz --keep-allele-order --out $file_path$newfilevcf \n";
+print SH "mv duplicatesPairs.txt $file_path \n";
+print SH "awk  'END {print \"Number of duplicates removed: \", NR}' $rem_file \n";
+print SH "echo The duplicates removed can be found in duplicatesRemoved.txt and duplicatesPairs.txt\n";
 print SH "rm TEMP*\n";
 
 while (<IN>)
@@ -395,15 +444,16 @@ while (<IN>)
    my $ChrPosAlleles =  $chrpos.'-'.$sort_alleles; # set flag for duplicate removal, based on chr pos alleles
    if ($seen{$ChrPosAlleles}) # chr-position has been seen before remove from the data set,
     {
-    print E "$temp[1]\n";
+    #print E "$temp[1]\n";
+    print D "$temp[1]\t$chrpos\n";
     if ($verbose)
      {
      print L "Duplicate $temp[1]\t$chrpos\n";
      }
     $duplicate++;
     }
-   else
-    {
+   #else
+    #{
     $seen{$ChrPosAlleles} = 1;
     $seen{$ChrPosTrAlleles} = 1;
 
@@ -436,7 +486,8 @@ while (<IN>)
       #check whether this SNP exists or not already in the data set at this new position as could create duplicate in the data set otherwise
       if ($seen{$ChrPosAlleles} or $seen{$ChrPosTrAlleles})
        {
-       print E "$temp[1]\n";
+       #print E "$temp[1]\n";
+       print D "$temp[1]\t$rs{$temp[1]}\n";
        if ($verbose)
         {
         print L "Duplicate $temp[1]\t$rs{$temp[1]}\n";
@@ -493,22 +544,23 @@ while (<IN>)
      #print to an exclusion file
      print E "$temp[1]\n";
      }
-    }
+    #}
    }
   elsif ($rs{$temp[1]}) #match on id, check why position did not match, set position to reference
    {
    my $ChrPosAlleles = $rs{$temp[1]}.'-'.$sort_alleles; # set flag for duplicate removal, based on chr pos alleles
    if ($seen{$ChrPosAlleles}) # chr-position has been seen before remove from the data set,
     {
-    print E "$temp[1]\n";
+    #print E "$temp[1]\n";
+    print D "$temp[1]\t$rs{$temp[1]}\n";
     if ($verbose)
      {
      print L "Duplicate $temp[1]\t$rs{$temp[1]}\n";
      }
     $duplicate++;
     }
-   else
-    {
+   #else
+    #{
     my @ChrPosRef = split(/-/, $rs{$temp[1]});
     $seen{$ChrPosAlleles} = 1;
     $seen{$ChrPosTrAlleles} = 1;
@@ -530,7 +582,7 @@ while (<IN>)
      #print to an exclusion file
      print E "$temp[1]\n";
      }
-    }
+    #}
    }
   else # no match on position or variant id, check +/- 1???
    {
@@ -584,7 +636,7 @@ if (!$noexclude)
 print L "Palindromic SNPs with Freq > 0.4 $palin\n\n";
 print L "\nNon Matching alleles: $nomatchalleles\n";
 print L "ID and allele mismatching: $idallelemismatch; where $referenceused is . $hrcdot\n";
-print L "Duplicates removed: $duplicate\n";
+#print L "Duplicates removed: $duplicate\n";
 
 #close the file with the allele frequencies
 close PL;

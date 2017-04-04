@@ -65,11 +65,12 @@ fi
 
 
 ## Now let's create the vcf files
-chmod u+x Run-plink.sh
-./Run-plink.sh
+chmod u+x Run-plink.sh 
+./Run-plink.sh | tee -a $OUTPUT/"resultsScreen.txt"
 if [ "$?" != "0" ]; then
   error_exit "Error while running the PLINK bash file following the perl script."
 fi
+
 
 echo "== Run bcftools =="
 bcftools annotate -Oz --rename-chrs $FIXDATA/"ucsc2ensembl.txt" $OUTPUT/$DATASTEM"_afterQC-updated_vcf.vcf.gz" > $OUTPUT/$DATASTEM"_afterQC-updatedChr.vcf.gz"
@@ -77,12 +78,12 @@ if [ "$?" != "0" ]; then
   error_exit "Error while renaming the chromosome."
 fi
 
-bcftools norm --check-ref e -f $FIXDATA/"human_g1k_v37.fasta" $OUTPUT/$DATASTEM"_afterQC-updatedChr.vcf.gz" -o $OUTPUT/$DATASTEM"_checkRef"
+bcftools norm --check-ref e -f $FIXDATA/"human_g1k_v37.fasta" $OUTPUT/$DATASTEM"_afterQC-updatedChr.vcf.gz" -o $OUTPUT/$DATASTEM"_checkRef" | tee -a $OUTPUT/"resultsScreen.txt"
 if [ "$?" != "0" ]; then
   error_exit "Error while checking that the REF allele matches with GRCh37 reference."
 fi
 
-bcftools index $OUTPUT/$DATASTEM"_afterQC-updatedChr.vcf.gz"
+bcftools index $OUTPUT/$DATASTEM"_afterQC-updatedChr.vcf.gz" | tee -a $OUTPUT/"resultsScreen.txt"
 if [ "$?" != "0" ]; then
   error_exit "Error while indexing the vcf file."
 fi

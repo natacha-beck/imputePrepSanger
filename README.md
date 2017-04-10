@@ -1,6 +1,6 @@
 # imputePrepSanger
 
-This pipeline takes plink genotype files, and adjusts the strand, the positions, the reference alleles, performs quality control steps and output a vcf file that satisfies the requirement for submission to the Sanger Imputation Service (https://imputation.sanger.ac.uk/) for imputation using the Haplotype Reference Consortium reference panel. 
+This pipeline takes plink genotype files, and adjusts the strand, the positions, the reference alleles, performs quality control steps and output a vcf file that satisfies the requirement for submission to the Sanger Imputation Service (https://imputation.sanger.ac.uk/) for imputation using the Haplotype Reference Consortium reference panel.
 
 
 ## Pipeline for creation of input data.
@@ -22,7 +22,7 @@ Note that for now, the present pipeline creates an input file for imputation usi
 3.  Then a perl script, modified from Will Rayner (http://www.well.ox.ac.uk/~wrayner/tools/), creates a series of plink commands to:
     1.  Update: position, ref/alt allele assignment and strand to match HRC panel.
     2.  Remove:
-        1.  Variants on chromosomes: X, XY, Y and MT.
+        1.  Variants on chromosomes: XY, Y and MT (variants on chromosome X are kept).
         2.  Indels.
         3.  A/T & G/C SNPs if MAF > 0.4 (palindromic SNPs, in this situation we are less confident about the strand),
         4.  SNPs with differing alleles,
@@ -35,6 +35,8 @@ Note that for now, the present pipeline creates an input file for imputation usi
 7.  Using BCFTOOLS make sure the positions are sorted (using the index function).
 
 Note that the thresholds mentioned above at step 3 are "hard-coded" (are not yet options/parameters), and therefore should be changed in the perl script directly, if needed. While the thresholds at step 2 are parameters to be passed in the command line, we suggest some values but these should take into account the data (number of samples, etc.).  
+
+We compare the genotypes of the identied duplicates. When there is a difference in genotype, we changed the genotype kept to missing, since it could be the result of a genotyping error. The genotype will be imputed back. The list of the duplicates removed (duplicatesRemoved.txt) and the duplicates pairs (duplicatesPairs.txt) can be found in the resulting folder containing the intermediates files (see section Ouput files below). 
 
 #### Updating the strand using Will Rayner's files
 
@@ -98,8 +100,7 @@ An example of the command line to run the pipeline without the flag to remove va
 
 Two folders containing the results are created: one with the name given at point 9 above, and the other the same + "_FullOutput". The first folder will contain the resulting .vcf files to be sent to the Sanger, a text file called FinalReport.txt, which summarize the different steps, the number of variants removed and why, and a resultsScreen.txt which contains all the information appearing at the screen when running the pipeline. 
 
-The second folder contains all intermediate files created during the pipeline. These can be deleted, but can also help understand some details if necessary. For example, the file that will have the same name as the strand file but with the extension .pos contains all the variants removed due to a difference larger than 10bp between the position in the strand file and in the input Plink file.
-
+The second folder contains all intermediate files created during the pipeline. These can be deleted, but can also help understand some details if necessary. For example, the file that will have the same name as the strand file but with the extension .pos contains all the variants removed due to a difference larger than 10bp between the position in the strand file and in the input Plink file. It also contains the two files related to the duplicates: the list of the duplicates removed (duplicatesRemoved.txt) and the duplicates pairs (duplicatesPairs.txt).  
 
 
 ## The Sanger Imputation Service

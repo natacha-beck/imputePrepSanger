@@ -610,7 +610,7 @@ my $worked_check = $idmatch + $idmismatch + $mismatchpos;
 my $worked_check1 = $strand + $nostrand;
 
 print "Matching to: $referenceused\n";
-print "\nPosition Matches\n ID matches: $referenceused $idmatch\n ID Doesn't match: $referenceused $idmismatch\n Total Position Matches: $pos_check\nID Match:\n Different position to: $referenceused $mismatchpos\nNo Match to: $referenceused $nothing\nSkipped (X, XY, Y, MT): $altchr\nTotal in bim file: $total\nTotal processed: $check_total\n\n";
+print "\nPosition Matches\n ID matches: $referenceused $idmatch\n ID Doesn't match: $referenceused $idmismatch\n Total Position Matches: $pos_check\nID Match:\n Different position to: $referenceused $mismatchpos\nNo Match to: $referenceused $nothing\nSkipped ( XY, Y, MT): $altchr\nTotal in bim file: $total\nTotal processed: $check_total\n\n";
 print "Indels (ignored in r1): $indel\n\n";
 print "SNPs not changed: $unchanged\nSNPs to change ref alt: $nomatch\nStrand ok : $strand\nTotal Strand ok: $check_total1\n\n";
 print "Strand to change: $nostrand\nTotal checked: $worked_check\nTotal checked Strand: $worked_check1\n";
@@ -625,7 +625,7 @@ print "Duplicates removed: $duplicate\n";
 
 #print L "Total bim File Rows $total\n";
 print L "Matching to: $referenceused\n";
-print L "\nPosition Matches\n ID matches: $referenceused $idmatch\n ID Doesn't match: $referenceused $idmismatch\n Total Position Matches: $pos_check\nID Match\n Different position to: $referenceused $mismatchpos\nNo Match to: $referenceused $nothing\nSkipped (X, XY, Y, MT): $altchr\nTotal in bim file: $total\nTotal processed: $check_total\n\n";
+print L "\nPosition Matches\n ID matches: $referenceused $idmatch\n ID Doesn't match: $referenceused $idmismatch\n Total Position Matches: $pos_check\nID Match\n Different position to: $referenceused $mismatchpos\nNo Match to: $referenceused $nothing\nSkipped ( XY, Y, MT): $altchr\nTotal in bim file: $total\nTotal processed: $check_total\n\n";
 print L "Indels (ignored in r1): $indel\n\n";
 print L "SNPs not changed: $unchanged\nSNPs to change ref alt: $nomatch\nStrand ok: $strand\nTotal Strand ok: $check_total1\n\n";
 print L "Strand to change: $nostrand\nTotal checked: $worked_check\nTotal checked Strand: $worked_check1\n";

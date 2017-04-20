@@ -313,7 +313,7 @@ my $tempfile = 'TEMP'.$tempcount;
 print SH "$plink --bfile $file_path$file_stem --exclude $excludefile --make-bed --out $tempfile\n";
 
 #change chromosome
-print SH "$plink --bfile $tempfile --update-map $chrfile --update-chr --make-bed --out ";
+print SH "$plink --bfile $tempfile --update-chr $chrfile --make-bed --out ";
 $tempcount++;
 $tempfile = 'TEMP'.$tempcount;
 print SH "$tempfile\n";
@@ -355,32 +355,35 @@ $tempcount++;
 $tempfile = 'TEMP'.$tempcount;
 print SH "$tempfile\n";
 my $listDupli = $tempfile.'.dupvar';
-print SH "cp $listDupli duplicatesPairs.txt \n";
+print SH "nbrDupli=\$(wc -l < $listDupli) \n";
+print SH "if (( \$nbrDupli  >= 0 ))  \n";
+print SH "then \n";
+print SH "  cp $listDupli duplicatesPairs.txt \n";
 
 my $dupliPedFile = 'TEMP_dupliPed';
-print SH "$plink --bfile $tempfile --extract $listDupli --reference-allele $forcefile --recode --tab --out $dupliPedFile \n ";
+print SH "  $plink --bfile $tempfile --extract $listDupli --reference-allele $forcefile --recode --tab --out $dupliPedFile \n ";
 
-print SH "$plink --bfile $tempfile --exclude $listDupli --reference-allele $forcefile --make-bed --out ";
-$tempcount++;
-$tempfile = 'TEMP'.$tempcount;
-print SH "$tempfile\n";
-
-
-my $resultDuplicate_file = "TEMP_dupliPed_2.ped";
-
-my $dupliPedFileExt = $dupliPedFile.'.ped';
-print SH "awk -f updateDuplicates.awk $dupliPedFileExt > $resultDuplicate_file \n";
-my $rem_file = $file_path.'duplicatesRemoved.txt';
-print SH "cat $listDupli | cut -d ' ' -f 2 > $rem_file \n";
-print SH "$plink -file $dupliPedFile --exclude $rem_file  --reference-allele $forcefile --make-bed --out ";
+print SH "  $plink --bfile $tempfile --exclude $listDupli --reference-allele $forcefile --make-bed --out ";
 $tempcount++;
 my $tempfile2 = 'TEMP'.$tempcount;
 print SH "$tempfile2\n";
 
 
+my $resultDuplicate_file = "TEMP_dupliPed_2.ped";
+
+my $dupliPedFileExt = $dupliPedFile.'.ped';
+print SH "  awk -f updateDuplicates.awk $dupliPedFileExt > $resultDuplicate_file \n";
+my $rem_file = $file_path.'duplicatesRemoved.txt';
+print SH "  cat $listDupli | cut -d ' ' -f 2 > $rem_file \n";
+print SH "  $plink -file $dupliPedFile --exclude $rem_file  --reference-allele $forcefile --make-bed --out ";
+$tempcount++;
+my $tempfile3 = 'TEMP'.$tempcount;
+print SH "$tempfile3\n";
+
+
 #Now we merge the files
 my $newfile = $file_stem.'-updated';
-print SH "$plink -bfile $tempfile --bmerge $tempfile2  --make-bed --out $file_path$newfile \n";
+print SH "  $plink -bfile $tempfile2 --bmerge $tempfile3  --make-bed --out $file_path$newfile \n";
 
 
 #split into per chromosome files
@@ -391,10 +394,14 @@ print SH "$plink -bfile $tempfile --bmerge $tempfile2  --make-bed --out $file_pa
 #  }
 my $stringTMP = "Number of duplicates removed: ";
 my $newfilevcf = $file_stem.'-updated_vcf';
-print SH "$plink --bfile $file_path$newfile  --a2-allele $forcefile --recode vcf bgz --keep-allele-order --out $file_path$newfilevcf \n";
-print SH "mv duplicatesPairs.txt $file_path \n";
-print SH "awk  'END {print \"Number of duplicates removed: \", NR}' $rem_file \n";
-print SH "echo The duplicates removed can be found in duplicatesRemoved.txt and duplicatesPairs.txt\n";
+print SH "  $plink --bfile $file_path$newfile  --a2-allele $forcefile --recode vcf bgz --keep-allele-order --out $file_path$newfilevcf \n";
+print SH "  mv duplicatesPairs.txt $file_path \n";
+print SH "  awk  'END {print \"Number of duplicates removed: \", NR}' $rem_file \n";
+print SH "  echo The duplicates removed can be found in duplicatesRemoved.txt and duplicatesPairs.txt\n";
+print SH "else \n ";
+print SH "  $plink --bfile $tempfile  --a2-allele $forcefile --recode vcf bgz --keep-allele-order --out $file_path$newfilevcf \n";
+print SH "  echo Number of duplicates removed: 0 . \n";
+print SH "fi \n";
 print SH "rm TEMP*\n";
 
 while (<IN>)

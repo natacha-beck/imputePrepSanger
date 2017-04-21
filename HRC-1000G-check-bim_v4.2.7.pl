@@ -356,7 +356,7 @@ $tempfile = 'TEMP'.$tempcount;
 print SH "$tempfile\n";
 my $listDupli = $tempfile.'.dupvar';
 print SH "nbrDupli=\$(wc -l < $listDupli) \n";
-print SH "if (( \$nbrDupli  >= 0 ))  \n";
+print SH "if (( \$nbrDupli  > 0 ))  \n";
 print SH "then \n";
 print SH "  cp $listDupli duplicatesPairs.txt \n";
 

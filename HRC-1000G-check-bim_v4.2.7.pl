@@ -1,23 +1,15 @@
 #!/usr/bin/perl
-# This is a modification of the script from W. Rayner. 
-# M.Forest 2016
-# marie.forest@ladydavis.ca
-#
-# Modifications include:
-#   - Strand is check only when there is no duplicate. 
-#   - Ids are changed to match HRC, made sure to use new ID for force allele
-#   - Added a plink command to create vcf
-#   
+
 # Script to check plink .bim files against HRC/1000G for strand, id names, positions, alleles, ref/alt assignment
-# W.Rayner 2015 
+# W.Rayner 2015
 # wrayner@well.ox.ac.uk
 #
-# Version 4.5
+# Version 4.2
 #
 #  -v4.0
 #  - removes SNPs not in the reference panel
 #  - removes all A/T G/C SNPs with MAF >40% in the reference data set
-#  - removed all SNPs with an AF difference >0.2, between reference and data set frequency file, frequency file is 
+#  - removed all SNPs with an AF difference >0.2, between reference and data set frequency file, frequency file is
 #    expected to be a plink frequency file with the same number of SNPs as the bim file
 #
 #  -v4.1
@@ -33,17 +25,21 @@
 #  - Indels are now added to the exclude file
 #  -v4.2.1
 #  - Fixed bug causing all SNPs with same position but differing name to be labelled duplicates and removed
-#  -v4.2.2  
+#  -v4.2.2
 #  - added ability to set allele frequency difference threshold, was fixed at 0.2
 #  - added ability to not exclude based on allele frequency difference
-#  - changed force allele file to now include all variants regardless of if they need a change to fix a bug where variants could be missed 
+#  - changed force allele file to now include all variants regardless of if they need a change to fix a bug where variants could be missed
 #  -v4.2.3
 #  - fixed bug whereby a SNP with an incorrect but identical position to the HRC would not be moved chromosome, even though the position was updated
 #  -v4.2.4
 #  - Added chrX support from r1.1 of HRC
 #  -v4.2.5
 #  - Updated, adding Chr X to plink command file
-#
+#  -v4.2.6
+#  - Added gzip reading for reference panels
+#  - Added a check of variant #'s between freq and bim file
+#  -v4.2.7
+#  - Updated code for determining window width to allow better compatibility with Windows
 # NOTES:
 # Script is based on release 1 of the HRC, filename HRC.r1.GRCh37.autosomes.mac5.sites.tab, can be overridden with the -r flag
 # in r1 HRC there are only autosomes, so 1-22 only considered by script, others counted in altchr
@@ -51,17 +47,19 @@
 # No indels in r1 HRC, so the code for these is not developed, beyond counting them in the bim file, they are exluded from the bim files
 # May add -i flag to keep or even check these in future
 # Script needs ~20Gb RAM to run
-# 
+#
 #
 
 use strict;
 use warnings;
 use File::Basename;
 use Getopt::Long;
+#use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
+#use Term::ReadKey   qw/ GetTerminalSize /;
 
 $| = 1;
 
-my $columns = getwidth(); 
+my $columns = getwidth();
 my $mid = int($columns/2+0.5);
 
 print "\n\n";
@@ -70,7 +68,7 @@ printf("%*s", $mid+25, "strand, id names, positions, alleles, ref/alt assignment
 printf("%*s", $mid+5, "William Rayner 2015\n");
 printf("%*s", $mid+6, "wrayner\@well.ox.ac.uk\n");
 print "\n";
-printf("%*s", $mid+5, "Version 4.2.3\n\n\n");
+printf("%*s", $mid+5, "Version 4.2.7\n\n\n");
 
 # default input filenames (HRC or 1000G file name)
 my $hrc_file = 'HRC.r1.GRCh37.autosomes.mac5.sites.tab';
@@ -119,12 +117,12 @@ GetOptions
  "f|frequency=s" => \$frq_file,   # input frequency filename (from plink)
  "b|bim=s"       => \$bim_file,   # input plink bim filename
  "h|hrc"         => \$hrcflag,    # flag to set HRC check
- "r|ref=s"       => \$in_file,    # input reference file (1000G or HRC) 
+ "r|ref=s"       => \$in_file,    # input reference file (1000G or HRC)
  "g|1000g"       => \$kgflag,     # flag to set 1000G check
  "p|pop=s"       => \$population, # 1000G population frequency
  "v|verbose"     => \$verbose,    # set verbose logging
  "t|threshold=s" => \$threshold,  # set the allele frequency difference threshold
- "n|noexclude"   => \$noexclude,  # sets flag to keep all SNPs regardless of allele frequency differences   
+ "n|noexclude"   => \$noexclude,  # sets flag to keep all SNPs regardless of allele frequency differences
  "i|indels"      => \$indelflag,  # sets flag for keeping/checking indels in the bim file
  "x|xyplot"      => \$plotflag    # sets flag for invoking frequency plots at the end of the comparison, requires GD or R
   );
@@ -230,8 +228,15 @@ else
  die "exiting\n";
  }
 
+my $bim_count = get_counts($bim_file);
+my $frq_count = get_counts($frq_file);
+if ($bim_count != ($frq_count-1))
+ {
+ print "WARNING: The number of variants in the bim and frq files are different\n";
+ }
+
 open IN, "$bim_file" or die $!; # bim file
-open FRQ, "$frq_file" or die $!; # frequency file 
+open FRQ, "$frq_file" or die $!; # frequency file
 
 while (<FRQ>)
  {
@@ -275,8 +280,8 @@ if ($kgflag)
 if ($verbose)
  {
  print L "Verbose logging flag set\n";
- } 
-print L "\n\n"; 
+ }
+print L "\n\n";
 
 my $idfile = $file_path.'ID-'.$file_stem.'-'.$referenceused.'.txt';
 open I, ">$idfile" or die $!;
@@ -287,8 +292,11 @@ open P, ">$posfile" or die $!;
 my $chrfile = $file_path.'Chromosome-'.$file_stem.'-'.$referenceused.'.txt';
 open C, ">$chrfile" or die $!;
 
-my $excludefile = $file_path.'Exclude-'.$file_stem.'-'.$referenceused.'.txt'; 
+my $excludefile = $file_path.'Exclude-'.$file_stem.'-'.$referenceused.'.txt';
 open E, ">$excludefile" or die $!;
+
+my $duplicatefile = $file_path.'Duplicate-'.$file_stem.'-'.$referenceused.'.txt';
+open D, ">$duplicatefile" or die $!;
 
 my $plotfile = $file_path.'FreqPlot-'.$file_stem.'-'.$referenceused.'.txt';
 open PL, ">$plotfile" or dir $!;
@@ -296,7 +304,8 @@ open PL, ">$plotfile" or dir $!;
 # shell script for running plink
 open SH, ">Run-plink.sh" or die $!;
 #set plink to use here
-my $plink = 'tools/plink/plink';
+my $plink = `which plink`;
+chomp($plink);
 
 my $tempcount = 1;
 my $tempfile = 'TEMP'.$tempcount;
@@ -304,7 +313,7 @@ my $tempfile = 'TEMP'.$tempcount;
 print SH "$plink --bfile $file_path$file_stem --exclude $excludefile --make-bed --out $tempfile\n";
 
 #change chromosome
-print SH "$plink --bfile $tempfile --update-map $chrfile --update-chr --make-bed --out ";
+print SH "$plink --bfile $tempfile --update-chr $chrfile --make-bed --out ";
 $tempcount++;
 $tempfile = 'TEMP'.$tempcount;
 print SH "$tempfile\n";
@@ -323,23 +332,76 @@ print SH "$tempfile\n";
 
 #update ids
 #remove the following 4 lines if you want don't want to update the SNP identifiers to match the HRC
-print SH "$plink --bfile $tempfile --update-map $idfile --update-name --make-bed --out ";
+#print SH "$plink --bfile $tempfile --update-map $idfile --update-name --make-bed --out ";
+#$tempcount++;
+#$tempfile = 'TEMP'.$tempcount;
+#print SH "$tempfile\n";
+
+#force alleles
+print SH "$plink --bfile $tempfile --reference-allele $forcefile --make-bed --out ";
 $tempcount++;
 $tempfile = 'TEMP'.$tempcount;
 print SH "$tempfile\n";
 
-#force alleles
+##Deal with duplicate
+#First we create ped file
+#print SH "plink --bfile $tempfile --recode --tab --out";
+#$tempcount++;
+#$tempfile = 'TEMP'.$tempcount;
+#print SH "$tempfile\n";
+
+print SH "$plink --bfile $tempfile --list-duplicate-vars ids-only --reference-allele $forcefile --make-bed --out ";
+$tempcount++;
+$tempfile = 'TEMP'.$tempcount;
+print SH "$tempfile\n";
+my $listDupli = $tempfile.'.dupvar';
+print SH "nbrDupli=\$(wc -l < $listDupli) \n";
+print SH "if (( \$nbrDupli  > 0 ))  \n";
+print SH "then \n";
+print SH "  cp $listDupli duplicatesPairs.txt \n";
+
+my $dupliPedFile = 'TEMP_dupliPed';
+print SH "  $plink --bfile $tempfile --extract $listDupli --reference-allele $forcefile --recode --tab --out $dupliPedFile \n ";
+
+print SH "  $plink --bfile $tempfile --exclude $listDupli --reference-allele $forcefile --make-bed --out ";
+$tempcount++;
+my $tempfile2 = 'TEMP'.$tempcount;
+print SH "$tempfile2\n";
+
+
+my $resultDuplicate_file = "TEMP_dupliPed_2.ped";
+
+my $dupliPedFileExt = $dupliPedFile.'.ped';
+print SH "  awk -f updateDuplicates.awk $dupliPedFileExt > $resultDuplicate_file \n";
+my $rem_file = $file_path.'duplicatesRemoved.txt';
+print SH "  cat $listDupli | cut -d ' ' -f 2 > $rem_file \n";
+print SH "  $plink -file $dupliPedFile --exclude $rem_file  --reference-allele $forcefile --make-bed --out ";
+$tempcount++;
+my $tempfile3 = 'TEMP'.$tempcount;
+print SH "$tempfile3\n";
+
+
+#Now we merge the files
 my $newfile = $file_stem.'-updated';
-print SH "$plink --bfile $tempfile --reference-allele $forcefile --make-bed --out $file_path$newfile\n";
+print SH "  $plink -bfile $tempfile2 --bmerge $tempfile3  --make-bed --out $file_path$newfile \n";
+
 
 #split into per chromosome files
-#for (my $i = 1; $i <= 23; $i++)
-# {
-# my $perchrfile = $newfile.'-chr'.$i;
-# print SH "$plink --bfile $newfile --reference-allele $forcefile --make-bed --chr $i --out $perchrfile\n";
-# }
+# for (my $i = 1; $i <= 23; $i++)
+#  {
+#  my $perchrfile = $newfile.'-chr'.$i;
+#  print SH "$plink --bfile $newfile --reference-allele $forcefile --make-bed --chr $i --out $perchrfile\n";
+#  }
+my $stringTMP = "Number of duplicates removed: ";
 my $newfilevcf = $file_stem.'-updated_vcf';
-print SH "$plink --bfile $file_path$newfile  --a2-allele $forcefile --recode vcf bgz --keep-allele-order --out $file_path$newfilevcf\n";
+print SH "  $plink --bfile $file_path$newfile  --a2-allele $forcefile --recode vcf bgz --keep-allele-order --out $file_path$newfilevcf \n";
+print SH "  mv duplicatesPairs.txt $file_path \n";
+print SH "  awk  'END {print \"Number of duplicates removed: \", NR}' $rem_file \n";
+print SH "  echo The duplicates removed can be found in duplicatesRemoved.txt and duplicatesPairs.txt\n";
+print SH "else \n ";
+print SH "  $plink --bfile $tempfile  --a2-allele $forcefile --recode vcf bgz --keep-allele-order --out $file_path$newfilevcf \n";
+print SH "  echo Number of duplicates removed: 0 . \n";
+print SH "fi \n";
 print SH "rm TEMP*\n";
 
 while (<IN>)
@@ -347,14 +409,14 @@ while (<IN>)
  chomp;
  my $indelflag = 0;
  $total++;
- 
+
  #split line
  my @temp = split/\s+/;
- if ($temp[0] < 23 or ($kgflag and $temp[0] == 23)) # no X, Y, XY or MT in release 1 HRC so skip checking these for now, only check if 1000G
+ if ($temp[0] <= 23) # or ($kgflag and $temp[0] == 23)) # no X, Y, XY or MT in release 1 HRC so skip checking these for now, only check if 1000G
   {
-  #set chr-position id for checks 
+  #set chr-position id for checks
   my $chrpos = $temp[0].'-'.$temp[3];
-  
+
   #set alleles for strand and ref/alt checks
   my $allele1 = $temp[4];
   my $allele2 = $temp[5];
@@ -363,17 +425,17 @@ while (<IN>)
   my $bim_alleles = $allele1.':'.$allele2;
   my @sorted_alleles = sort {$a cmp $b} @alleles;
   my $sort_alleles = $sorted_alleles[0].':'.$sorted_alleles[1];
-  
+
   $allele1 =~ tr/ACGT/TGCA/;
   $allele2 =~ tr/ACGT/TGCA/;
-  
+
   #create alternate strand alleles for this SNP
   $tr_alleles[0] = $allele1;
   $tr_alleles[1] = $allele2;
   my @sorted_tr_alleles = sort {$a cmp $b} @tr_alleles;
   my $sort_tr_alleles = $sorted_tr_alleles[0].':'.$sorted_tr_alleles[1];
-  my $ChrPosTrAlleles =  $chrpos.'-'.$sort_tr_alleles; 
-  
+  my $ChrPosTrAlleles =  $chrpos.'-'.$sort_tr_alleles;
+
   # if indel, adjust position by -1 before checking
   if ($temp[4] eq '-' or $temp[5] eq '-' or $temp[4] eq 'I' or $temp[5] eq 'I' or $temp[4] eq 'D' or $temp[5] eq 'D')
    {
@@ -382,22 +444,23 @@ while (<IN>)
    $indelflag = 1;
    print E "$temp[1]\n";
    }
-  # no indels in r1 of HRC so skip for now, indels will flag up at the same pos/different alleles stage 
+  # no indels in r1 of HRC so skip for now, indels will flag up at the same pos/different alleles stage
   # due to the way Illumina represent as -/A but in 1000G/HRC represented as T/TA
   elsif ($id{$chrpos}) # position Match
    {
    my $ChrPosAlleles =  $chrpos.'-'.$sort_alleles; # set flag for duplicate removal, based on chr pos alleles
-   if ($seen{$ChrPosAlleles}) # chr-position has been seen before remove from the data set, 
+   if ($seen{$ChrPosAlleles}) # chr-position has been seen before remove from the data set,
     {
-    print E "$temp[1]\n";
+    #print E "$temp[1]\n";
+    print D "$temp[1]\t$chrpos\n";
     if ($verbose)
      {
-     print L "Duplicate 1: $temp[1]\t$chrpos\n";
+     print L "Duplicate $temp[1]\t$chrpos\n";
      }
     $duplicate++;
     }
-   else
-    {
+   #else
+    #{
     $seen{$ChrPosAlleles} = 1;
     $seen{$ChrPosTrAlleles} = 1;
 
@@ -405,8 +468,65 @@ while (<IN>)
     if ($id{$chrpos} eq $temp[1]) # id match
      {
      $idmatch++;
-      my $checking = check_strand($refalt{$chrpos}, $bim_alleles, $temp[1], $AltAf{$chrpos}, $af{$temp[1]}, $id{$chrpos});
-      if (!$checking)
+     }
+    else # positions the same but ids are not, is this a genuine difference of name, or a mismapped SNP
+     {
+     if ($rs{$temp[1]} and $id{$chrpos} ne '.' and $chrpos ne $rs{$temp[1]}) # checks for mismapped SNP
+      {
+      # SNP rs exists in the reference dataset, and the HRC name is not = '.' (to exclude spurious mismatches where HRC name is not assigned),
+      # and position in the reference, based on rs id, is different from the current position
+      # check to see if the id is used elsewhere, if it is the wrong SNP has been chosen by position,
+      # happens when there are adjacent SNPs and bim file SNP position is out, correct here by changing
+      # bim file location to that of the rs id in HRC
+
+      if ($verbose)
+       {
+       print L "$temp[1]\t$id{$chrpos}\t$chrpos\t$rs{$temp[1]}\t$bim_alleles\t$refalt{$chrpos}\t$refalt{$rs{$temp[1]}}\n";
+       }
+
+      # set exclusions for this SNP based on the new position to remove duplicates
+      $ChrPosTrAlleles =  $rs{$temp[1]}.'-'.$sort_tr_alleles;
+      $ChrPosAlleles =  $rs{$temp[1]}.'-'.$sort_alleles;
+
+      $chrpos = $rs{$temp[1]};
+
+      #check whether this SNP exists or not already in the data set at this new position as could create duplicate in the data set otherwise
+      if ($seen{$ChrPosAlleles} or $seen{$ChrPosTrAlleles})
+       {
+       #print E "$temp[1]\n";
+       print D "$temp[1]\t$rs{$temp[1]}\n";
+       if ($verbose)
+        {
+        print L "Duplicate $temp[1]\t$rs{$temp[1]}\n";
+        }
+       $duplicate++;
+       }
+      else
+       {
+       $chrpos =~ /(.*)\-(.*)/;
+       print P "$temp[1]\t$2\n";
+       print C "$temp[1]\t$1\n";
+       $mismatchpos++;
+       }
+
+      # update hash to reflect that this SNP has been seen in the data set before
+      $seen{$ChrPosAlleles} = 1;
+      $seen{$ChrPosTrAlleles} = 1;
+      }
+     else
+      {
+      $idmismatch++;
+      print I "$temp[1]\t$id{$chrpos}\n"; #update ID
+      if ($verbose)
+       {
+       print L "$temp[1]\t$id{$chrpos}\t$chrpos\t$bim_alleles\t$refalt{$chrpos}\n";
+       }
+      $idmismatching = 1;
+      }
+     }
+
+    my $checking = check_strand($refalt{$chrpos}, $bim_alleles, $temp[1], $AltAf{$chrpos}, $af{$temp[1]});
+    if (!$checking)
      {
      if ($idmismatching)
       {
@@ -417,7 +537,7 @@ while (<IN>)
        $hrcdot++;
        }
       }
-     
+
      if ($verbose)
       {
       print L "nomatch $temp[1]\t$id{$chrpos}\t$refalt{$chrpos}\t$bim_alleles\n";
@@ -426,155 +546,50 @@ while (<IN>)
        print L "$temp[1] MultiAllelic\n";
        }
       }
-     $nomatchalleles++;   
-    
+     $nomatchalleles++;
+
      #print to an exclusion file
      print E "$temp[1]\n";
      }
-     }
-    else # positions the same but ids are not, is this a genuine difference of name, or a mismapped SNP
-     {
-     if ($rs{$temp[1]} and $id{$chrpos} ne '.' and $chrpos ne $rs{$temp[1]}) # checks for mismapped SNP
-      {
-      # SNP rs exists in the reference dataset, and the HRC name is not = '.' (to exclude spurious mismatches where HRC name is not assigned),
-      # and position in the reference, based on rs id, is different from the current position
-      # check to see if the id is used elsewhere, if it is the wrong SNP has been chosen by position, 
-      # happens when there are adjacent SNPs and bim file SNP position is out, correct here by changing
-      # bim file location to that of the rs id in HRC
-      
-      if ($verbose)
-       {
-       print L "line 413 : $temp[1]\t$id{$chrpos}\t$chrpos\t$rs{$temp[1]}\t$bim_alleles\t$refalt{$chrpos}\t$refalt{$rs{$temp[1]}}\n";
-       }
-       
-      # set exclusions for this SNP based on the new position to remove duplicates
-      $ChrPosTrAlleles =  $rs{$temp[1]}.'-'.$sort_tr_alleles;
-      $ChrPosAlleles =  $rs{$temp[1]}.'-'.$sort_alleles;
-     
-      $chrpos = $rs{$temp[1]};
-      
-      #check whether this SNP exists or not already in the data set at this new position as could create duplicate in the data set otherwise
-      if ($seen{$ChrPosAlleles} or $seen{$ChrPosTrAlleles})
-       {
-       print E "$temp[1]\n";
-       if ($verbose)
-        {
-        print L "Duplicate 2: $temp[1]\t$rs{$temp[1]}\n";
-        }
-       $duplicate++;
-       }
-      else
-      {
-        $chrpos =~ /(.*)\-(.*)/;
-        print P "$temp[1]\t$2\n";
-        print C "$temp[1]\t$1\n";
-        $mismatchpos++;
-        # update hash to reflect that this SNP has been seen in the data set before
-        $seen{$ChrPosAlleles} = 1;
-        $seen{$ChrPosTrAlleles} = 1; 
-        my $checking = check_strand($refalt{$chrpos}, $bim_alleles, $temp[1], $AltAf{$chrpos}, $af{$temp[1]}, $id{$chrpos});
-        if (!$checking)
-        {
-          if ($idmismatching)
-          {
-            #alleles and ids don't match
-            $idallelemismatch++;
-            if ($id{$chrpos} eq '.')
-            {
-              $hrcdot++;
-            }
-          }
-          if ($verbose)
-          {
-            print L "nomatch $temp[1]\t$id{$chrpos}\t$refalt{$chrpos}\t$bim_alleles\n";
-            if ($refalt{$chrpos} eq 'N:N')
-            {
-              print L "$temp[1] MultiAllelic\n";
-            }
-          }
-          $nomatchalleles++;   
-          #print to an exclusion file
-          print E "$temp[1]\n";
-        }
-      }
-     }
-     else
-      {
-      $idmismatch++;
-      if($id{$chrpos} ne '.')
-      {
-        print I "$temp[1]\t$id{$chrpos}\n"; #update ID
-      }
-      if ($verbose)
-       {
-       print L "$temp[1]\t$id{$chrpos}\t$chrpos\t$bim_alleles\t$refalt{$chrpos}\n";
-       }
-      $idmismatching = 1;
-      my $checking = check_strand($refalt{$chrpos}, $bim_alleles, $temp[1], $AltAf{$chrpos}, $af{$temp[1]}, $id{$chrpos});
-      if (!$checking)
-      {
-        if ($idmismatching)
-        {
-          #alleles and ids don't match
-          $idallelemismatch++;
-          if ($id{$chrpos} eq '.')
-          {
-            $hrcdot++;
-          }
-        }
-        if ($verbose)
-        {
-          print L "nomatch $temp[1]\t$id{$chrpos}\t$refalt{$chrpos}\t$bim_alleles\n";
-          if ($refalt{$chrpos} eq 'N:N')
-          {
-            print L "$temp[1] MultiAllelic\n";
-          }
-        }
-        $nomatchalleles++;   
-    
-        #print to an exclusion file
-        print E "$temp[1]\n";
-      }
-      }
-     }
-    }
+    #}
    }
   elsif ($rs{$temp[1]}) #match on id, check why position did not match, set position to reference
    {
    my $ChrPosAlleles = $rs{$temp[1]}.'-'.$sort_alleles; # set flag for duplicate removal, based on chr pos alleles
-   if ($seen{$ChrPosAlleles}) # chr-position has been seen before remove from the data set, 
+   if ($seen{$ChrPosAlleles}) # chr-position has been seen before remove from the data set,
     {
-    print E "$temp[1]\n";
+    #print E "$temp[1]\n";
+    print D "$temp[1]\t$rs{$temp[1]}\n";
     if ($verbose)
      {
-     print L "Duplicate 3: $temp[1]\t$rs{$temp[1]}\n";
+     print L "Duplicate $temp[1]\t$rs{$temp[1]}\n";
      }
     $duplicate++;
     }
-   else
-    {
+   #else
+    #{
     my @ChrPosRef = split(/-/, $rs{$temp[1]});
     $seen{$ChrPosAlleles} = 1;
     $seen{$ChrPosTrAlleles} = 1;
 
     print C "$temp[1]\t$ChrPosRef[0]\n"; #print element [0] chromosome
     print P "$temp[1]\t$ChrPosRef[1]\n"; #print element [1] position
-     
+
     $mismatchpos++;
-    my $checking = check_strand($refalt{$rs{$temp[1]}}, $bim_alleles, $temp[1], $AltAf{$rs{$temp[1]}}, $af{$temp[1]}, $temp[1]);
-    
+    my $checking = check_strand($refalt{$rs{$temp[1]}}, $bim_alleles, $temp[1], $AltAf{$rs{$temp[1]}}, $af{$temp[1]});
+
     if (!$checking)
      {
      if ($verbose)
       {
       print L "nomatch $temp[1]\t$id{$rs{$temp[1]}}\t$refalt{$rs{$temp[1]}}\t$bim_alleles\n";
       }
-     $nomatchalleles++;   
-    
+     $nomatchalleles++;
+
      #print to an exclusion file
      print E "$temp[1]\n";
      }
-    } 
+    #}
    }
   else # no match on position or variant id, check +/- 1???
    {
@@ -592,7 +607,7 @@ while (<IN>)
   print E "$temp[1]\n";
   }
  }
- 
+
 #print "Total bim File Rows $total\n";
 
 my $check_total = $idmatch + $idmismatch + $mismatchpos + $nothing + $altchr ;
@@ -602,33 +617,33 @@ my $worked_check = $idmatch + $idmismatch + $mismatchpos;
 my $worked_check1 = $strand + $nostrand;
 
 print "Matching to: $referenceused\n";
-print "\nPosition Matches\n ID matches: $referenceused $idmatch\n ID Doesn't match: $referenceused $idmismatch\n Total Position Matches: $pos_check\nID Match\n Different position to: $referenceused $mismatchpos\nNo Match to: $referenceused $nothing\nSkipped (X, XY, Y, MT): $altchr\nTotal in bim file: $total\nTotal processed $check_total\n\n"; 
+print "\nPosition Matches\n ID matches: $referenceused $idmatch\n ID Doesn't match: $referenceused $idmismatch\n Total Position Matches: $pos_check\nID Match:\n Different position to: $referenceused $mismatchpos\nNo Match to: $referenceused $nothing\nSkipped ( XY, Y, MT): $altchr\nTotal in bim file: $total\nTotal processed: $check_total\n\n";
 print "Indels (ignored in r1): $indel\n\n";
-print "SNPs not changed: $unchanged\nSNPs to change ref alt: $nomatch\nStrand ok: $strand\nTotal Strand ok : $check_total1\n\n";
-print "Strand to change: $nostrand\nTotal checked: $worked_check\nTotal checked Strand : $worked_check1\n";
+print "SNPs not changed: $unchanged\nSNPs to change ref alt: $nomatch\nStrand ok : $strand\nTotal Strand ok: $check_total1\n\n";
+print "Strand to change: $nostrand\nTotal checked: $worked_check\nTotal checked Strand: $worked_check1\n";
 if (!$noexclude)
  {
  print "Total removed for allele Frequency diff > $threshold $allelediff\n";
  }
-print "Palindromic SNPs with Freq > 0.4: $palin\n\n";
+print "Palindromic SNPs with Freq > 0.4 $palin\n\n";
 print "\nNon Matching alleles: $nomatchalleles\n";
-print "ID and allele mismatching $idallelemismatch; where $referenceused is . $hrcdot\n";
+print "ID and allele mismatching: $idallelemismatch; where $referenceused is . $hrcdot\n";
 print "Duplicates removed: $duplicate\n";
 
 #print L "Total bim File Rows $total\n";
-print L "Matching to $referenceused\n";
-print L "\nPosition Matches\n ID matches $referenceused $idmatch\n ID Doesn't match $referenceused $idmismatch\n Total Position Matches $pos_check\nID Match\n Different position to $referenceused $mismatchpos\nNo Match to $referenceused $nothing\nSkipped (X, XY, Y, MT) $altchr\nTotal in bim file $total\nTotal processed $check_total\n\n"; 
-print L "Indels (ignored in r1) $indel\n\n";
-print L "SNPs not changed $unchanged\nSNPs to change ref alt $nomatch\nStrand ok $strand\nTotal Strand ok $check_total1\n\n";
-print L "Strand to change $nostrand\nTotal checked $worked_check\nTotal checked Strand $worked_check1\n";
+print L "Matching to: $referenceused\n";
+print L "\nPosition Matches\n ID matches: $referenceused $idmatch\n ID Doesn't match: $referenceused $idmismatch\n Total Position Matches: $pos_check\nID Match\n Different position to: $referenceused $mismatchpos\nNo Match to: $referenceused $nothing\nSkipped ( XY, Y, MT): $altchr\nTotal in bim file: $total\nTotal processed: $check_total\n\n";
+print L "Indels (ignored in r1): $indel\n\n";
+print L "SNPs not changed: $unchanged\nSNPs to change ref alt: $nomatch\nStrand ok: $strand\nTotal Strand ok: $check_total1\n\n";
+print L "Strand to change: $nostrand\nTotal checked: $worked_check\nTotal checked Strand: $worked_check1\n";
 if (!$noexclude)
  {
  print L "Total removed for allele Frequency diff > $threshold $allelediff\n";
  }
 print L "Palindromic SNPs with Freq > 0.4 $palin\n\n";
-print L "\nNon Matching alleles $nomatchalleles\n";
-print L "ID and allele mismatching $idallelemismatch; where $referenceused is . $hrcdot\n";
-print L "Duplicates removed $duplicate\n";
+print L "\nNon Matching alleles: $nomatchalleles\n";
+print L "ID and allele mismatching: $idallelemismatch; where $referenceused is . $hrcdot\n";
+#print L "Duplicates removed: $duplicate\n";
 
 #close the file with the allele frequencies
 close PL;
@@ -641,10 +656,10 @@ close E;
 close S;
 
 #clear the HRC hashes
-%id = ();
-%rs = ();
-%AltAf = ();
-%refalt = ();
+#%id = ();
+#%rs = ();
+#%AltAf = ();
+#%refalt = ();
 
 #my $checkinc = inc_check();
 #my $checkr = r_check();
@@ -694,9 +709,9 @@ close S;
 # eval {use GD::Graph::points; };
 # if (!$@)
 #  {
-#  $check = 1; 
+#  $check = 1;
 #  }
-# return $check; 
+# return $check;
 # }
 
 
@@ -708,30 +723,29 @@ sub check_strand
  my $id = $_[2];
  my $altaf = $_[3]; #HRC alt allele frequency
  my $bimaf = $_[4]; #bim file allele frequency
- my $newid = $_[5]; #Id in HRC
  my $diff = 0;
  my $maf = 0;
- 
+
  my @alleles1 = split(/\:/, $a1);
  my @alleles2 = split(/\:/, $a2);
  #set the ref allele
  my $ref = $alleles1[0];
- 
+
  if ($verbose)
   {
-  print L "line 667: $id\t$a1\t$a2";
+  print L "$id\t$a1\t$a2";
   }
-  
+
  # flip one set and check if they match opposite strand
  $a2 =~ tr/ACGTN/TGCAN/;
- 
+
  if ($verbose)
   {
-  print L "line 675: \t$a2\n";
+  print L "\t$a2\n";
   }
-  
- my @allelesflip = split(/\:/, $a2); 
- 
+
+ my @allelesflip = split(/\:/, $a2);
+
  if ($altaf > 0.5)
   {
   $maf = 1 - $altaf;
@@ -740,26 +754,26 @@ sub check_strand
   {
   $maf = $altaf
   }
-  
+
  #check MAFs for palindromic SNPs first, this is an absolute failure, so return here if conditions not met
- if ($maf > 0.4 and ($a1 eq 'A:T' or $a1 eq 'T:A' or $a1 eq 'G:C' or $a1 eq 'C:G')) 
+ if ($maf > 0.4 and ($a1 eq 'A:T' or $a1 eq 'T:A' or $a1 eq 'G:C' or $a1 eq 'C:G'))
   {
   print E "$id\n";
-  
+
   if ($verbose)
    {
-   print L "line 696: $id\t$maf\t$a1\n";
+   print L "$id\t$maf\t$a1\n";
    }
-   
+
   $check = 5;
   $palin++;
   return $check;
   }
- 
+
  #print PL "$id\t$refaf\t$af\t";
  #$diff = $refaf - $bimaf;
 
- 
+
  # check alleles/strand are the same and print frequencies to file
  if ($alleles1[0] eq $alleles2[0] and $alleles1[1] eq $alleles2[1])
   { # strand ok, ref/alt ok
@@ -770,10 +784,6 @@ sub check_strand
   my $RefAf = 1 - $altaf;
   $diff = $RefAf - $bimaf;
   print PL "$id\t$RefAf\t$bimaf\t$diff\t1\n";
-  if ($verbose)
-   {
-   print L "line 720";
-   }
   }
  elsif ($alleles1[0] eq $alleles2[1] and $alleles1[1] eq $alleles2[0])
   { # strand ok, ref alt swapped
@@ -785,10 +795,6 @@ sub check_strand
   #my $newaf = 1-$refaf;
   $diff = $altaf - $bimaf;
   print PL "$id\t$altaf\t$bimaf\t$diff\t2\n";
-    if ($verbose)
-   {
-   print L "line 735\n";
-   }
   }
  elsif ($alleles1[0] eq $allelesflip[0] and $alleles1[1] eq $allelesflip[1])
   { # strand flipped, ref alt ok
@@ -799,10 +805,6 @@ sub check_strand
   my $RefAf = 1 - $altaf;
   $diff = $RefAf - $bimaf;
   print PL "$id\t$RefAf\t$bimaf\t$diff\t3\n";
-  if ($verbose)
-   {
-   print L "line 749";
-   }
   }
  elsif ($alleles1[0] eq $allelesflip[1] and $alleles1[1] eq $allelesflip[0])
   { # strand flipped, ref alt swapped
@@ -810,75 +812,64 @@ sub check_strand
   $nostrand++;
   $nomatch++;
   print S "$id\n";
-  #print F "$id\t$ref\n"; 
+  #print F "$id\t$ref\n";
   #print PL "4 $alleles1[0]\t$allelesflip[0]\t$alleles1[1]\t$allelesflip[1]\t";
   #my $af = 1-$altaf;
   $diff = $altaf - $bimaf;
   print PL "$id\t$altaf\t$bimaf\t$diff\t4\n";
-  if ($verbose)
-   {
-   print L "line 765";
-   }
-  } 
+  }
  else
   {
   $check = 0;
   #print PL "7\n";
-  if ($verbose)
-   {
-   print L "line 774";
-   }
   }
- if (($id eq $newid or $newid eq '' or $newid eq '.')and $check)
- {
-   print F "$id\t$ref\n"; #print all variants to Force Allele file so as to ensure none are missed
- }
- elsif($check)
- {
-   print F "$newid\t$ref\n"; #print all variants to Force Allele file so as to ensure none are missed
-  }
- 
+
+ print F "$id\t$ref\n"; #print all variants to Force Allele file so as to ensure none are missed
 
  if ($diff < 0)
   {
   $diff = $diff * -1;
   }
- 
+
   if ($diff > $threshold)# removed the following for A/T G/C: and ($a1 eq 'A:T' or $a1 eq 'T:A' or $a1 eq 'G:C' or $a1 eq 'C:G'))
    {
    if (!$noexclude) #only add to exclusion if the noexclude flag is not set
     {
-    print E "$id\n"; 
+    print E "$id\n";
     }
-    
+
    if ($verbose)
     {
-    print L "line 781: $id\t$bimaf\t$altaf\t$diff\n";
+    print L "$id\t$bimaf\t$altaf\t$diff\n";
     }
-    
+
    $check = 6;
    $allelediff++;
    }
-  
+
  return $check;
- } 
- 
+ }
+
 sub getwidth
  {
  my $output = `stty size`;
  my @rowcols = split(/\s/, $output);
  my $cols = $rowcols[1];
+
+ #my @winsize = &GetTerminalSize(\*STDOUT);
+ #my ($cols, $rows, $xpix, $ypix) = @winsize;
+
  if (!$cols)
   {
   $cols = 80;
   }
  return $cols;
- } 
+ }
 
 sub usage
  {
- print "\nUsage:\nFor HRC:\nperl HRC-1000G-check-bim-v4.2.pl -b <bim file> -f <Frequency file> -r <Reference panel> -h [-v -t <allele frequency threshold -n]\n";
- print "\nFor 1000G:\nperl HRC-1000G-check-bim-v4.2.pl -b <bim file> -f <Frequency file> -r <Reference panel> -g -p <population> [-v -t <allele frequency threshold -n]\n";
+ print "\nUsage:\nFor HRC:\nperl HRC-1000G-check-bim.pl -b <bim file> -f <Frequency file> -r <Reference panel> -h [-v -t <allele frequency threshold -n]\n";
+ print "\nFor 1000G:\nperl HRC-1000G-check-bim.pl -b <bim file> -f <Frequency file> -r <Reference panel> -g -p <population> [-v -t <allele frequency threshold -n]\n";
  print "\n\n";
  printusage("-b --bim", "bim file", "Plink format .bim file");
  printusage("-f --frequency", "Frequency file", "Plink format .frq allele frequency file, from plink --freq command");
@@ -893,20 +884,20 @@ sub usage
  printusage("-n --noexclude", "", "Optional flag to include all SNPs regardless of allele frequency differences, default is exclude based on -t threshold, overrides -t");
  print "\n\n";
  }
- 
+
 sub printusage
  {
  my $option = $_[0];
  my $file = $_[1];
  my $text = $_[2];
- 
- my $cols = getwidth(); 
+
+ my $cols = getwidth();
 
  printf("%-18s", $option);
  printf("%-15s", $file);
  my $textwidth = $cols - 36; #33 plus 3 spaces
  my $newtext = substr ($text, 0, $textwidth);
- 
+
  if (length($text) > $textwidth)
   {
   printf("  %*s", $textwidth, $newtext);
@@ -922,14 +913,26 @@ sub printusage
   {
   printf("  %*s", -$textwidth, $newtext);
   }
- print "\n"; 
- } 
- 
+ print "\n";
+ }
+
 sub read_hrc
  {
  my $file = $_[0];
- open IN, "$file" or die $!;
- while (<IN>)
+ #check if file has .gz suffix
+ #my $zipped = checkgz($file);
+ my $z;
+
+ #if ($zipped)
+  #{
+  #$z = new IO::Uncompress::Gunzip "$file" or die "IO::Uncompress::Gunzip failed: $GunzipError\n";
+  #}
+ #else
+  #{
+  open $z, "$file" or die $!;
+  #}
+
+ while (<$z>)
   {
   chomp;
   if (!/\#.*/)
@@ -950,22 +953,39 @@ sub read_hrc
    $AltAf{$chrpos} = $temp[7];
    }
   }
+ if ($. < 10000000)
+  {
+  print "Reference appears to be bgzipped\nThis is not supported with the current Perl Library, please use the unzipped version\n";
+  exit;
+  }
  print " Done\n";
  close IN;
  }
- 
+
 sub read_kg
  {
  my $file = $_[0];
  my $pop = $_[1];
  my $freqcol;
  my $typecol = 0;
- 
- open IN, "$file" or die $!;
- my $header = <IN>;
+
+ #my $zipped = checkgz($file);
+ my $z;
+
+ #if ($zipped)
+  #{
+  #print "Reference Panel is zipped\n";
+  #$z = new IO::Uncompress::Gunzip "$file" or die "IO::Uncompress::Gunzip failed: $GunzipError\n";
+  #}
+ #else
+  #{
+  open $z, "$file" or die $!;
+  #}
+
+ my $header = <$z>;
  chomp $header;
  my @titles = split(/\s+/, $header);
- 
+
  for (my $i = 0; $i <= $#titles; $i++)
   {
   if ($titles[$i] eq $pop)
@@ -977,14 +997,14 @@ sub read_kg
    $typecol = $i;
    }
   }
- 
+
  if (!$freqcol)
   {
   print "ERROR: Population specified, $pop not found in $file\n";
   die;
   }
- 
- while (<IN>)
+
+ while (<$z>)
   {
   chomp;
   if ($. % 100000 == 0)
@@ -992,7 +1012,7 @@ sub read_kg
    print " $.";
    }
   my @temp = split/\s+/;
-  
+
   my $chrpos = $temp[1].'-'.$temp[2];
   $id{$chrpos} = $temp[0];
   if ($temp[0] =~ /^rs.*/)
@@ -1002,7 +1022,7 @@ sub read_kg
    }
   $refalt{$chrpos} = $temp[3].':'.$temp[4];
   $AltAf{$chrpos} = $temp[$freqcol];
-  
+
   if ($typecol) # if column with SNP type exists, check for Multiallelic
    {
    if ($temp[$typecol] =~ /^Multiallelic.*/)
@@ -1010,10 +1030,47 @@ sub read_kg
     $refalt{$chrpos} = 'N:N';
     }
    }
-  
+
   }
  print " Done\n";
- 
+
  close IN;
 
+ }
+
+
+sub checkgz
+ {
+ my $file = $_[0];
+
+ my @filecomponents = split(/\./, $file);
+ my $zipped = 0;
+
+ if ($filecomponents[$#filecomponents] eq 'gz')
+  {
+  print "Reference Panel is zipped\n";
+  $zipped = 1;
+  }
+ elsif ($filecomponents[$#filecomponents] eq 'zip')
+  {
+  print "WARNING: .zip format is not supported, skipping $file\n";
+  $zipped = -1;
+  }
+ else
+  {
+  $zipped = 0;
+  }
+ return $zipped;
+ }
+
+sub get_counts
+ {
+ my $file = $_[0];
+ my $counts = 0;
+ open I, "$file" or die $!;
+ while (<I>)
+  {
+  $counts++;
+  }
+ return $counts;
  }

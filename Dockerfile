@@ -1,6 +1,7 @@
 FROM centos
 
 MAINTAINER Marie Forest <marie.forest@ladydavis.ca>
+MAINTAINER Natacha Beck <natacha.beck@mcgill.ca>
 
 # Install prerequisite
 RUN yum update -y
@@ -13,45 +14,46 @@ RUN yum install -y bzip2 \
                    perl \
                    unzip \
                    wget \
-                   zlib-devel
+                   zlib-devel \
+                   which
 
-RUN git clone https://github.com/eauforest/imputePrepSanger.git
+COPY . imputePrepSanger
 
 WORKDIR /imputePrepSanger/
-RUN  echo | ls
 
-RUN mkdir results \
-    && mkdir tools \
-    && mkdir tools/plink \
-    && mkdir ressources \
-    && mkdir ressources/data \
-    && mkdir ressources/HRC_refSites \
-    && mkdir ressources/strand
+# INSTALL TOOLS
+# 1. Tools that come with this pipeline
+RUN chmod 755 /imputePrepSanger/imputePrep_script.sh \ 
+    && cp /imputePrepSanger/imputePrep_script.sh /bin/
 
-# These files are from the git clone, and need to move into specific directories
-RUN mv HRC-1000G-check-bim_modified.pl ressources/HRC_refSites/
-RUN mv ucsc2ensembl.txt ressources/HRC_refSites/
-RUN mv update_build.sh ressources/strand/
-RUN mv bcftools-1.3.1.tar.bz2 tools/
-RUN mv plink_linux_x86_64.zip tools/plink/
+RUN chmod 755 /imputePrepSanger/HRC-1000G-check-bim_v4.2.7.pl \
+    && cp /imputePrepSanger/HRC-1000G-check-bim_v4.2.7.pl /bin/
 
-RUN cd /imputePrepSanger/tools/ && echo | ls
-RUN cd /imputePrepSanger/ && echo | ls
+RUN chmod 755 /imputePrepSanger/update_build.sh \
+    && cp /imputePrepSanger/update_build.sh /bin/ 
 
-WORKDIR tools/
-RUN bunzip2 -f bcftools-1.3.1.tar.bz2 
-RUN tar -xvf bcftools-1.3.1.tar \
-    && cd bcftools-1.3.1 \
-    && mkdir bin \
-    && make \
-    && make install
+RUN chmod 755 /imputePrepSanger/reportRedaction.sh \
+    && cp /imputePrepSanger/reportRedaction.sh /bin/
 
 
-RUN mv bcftools-1.3.1/bcftools bcftools-1.3.1/bin
+# 2. External tools
+# a. bcftools
+RUN wget  https://github.com/samtools/bcftools/releases/download/1.3.1/bcftools-1.3.1.tar.bz2 \
+ && bunzip2 -f bcftools-1.3.1.tar.bz2 \
+ && tar -xvf bcftools-1.3.1.tar \
+ && cd bcftools-1.3.1 \
+ && make \
+ && make install
 
-#Now we unzip plink 1.9
-WORKDIR plink/
-RUN  unzip -a plink_linux_x86_64.zip
+RUN cp bcftools-1.3.1/bcftools /bin/
 
+# b. plink 
+#RUN wget http://pngu.mgh.harvard.edu/~purcell/plink/dist/plink-1.07-x86_64.zip \
+#    &&  unzip plink-1.07-x86_64.zip
 
-WORKDIR ../../
+#RUN cp plink-1.07-x86_64/plink /bin/
+
+RUN unzip plink_linux_x86_64.zip -d ./plink
+
+RUN cp plink/plink /bin/
+

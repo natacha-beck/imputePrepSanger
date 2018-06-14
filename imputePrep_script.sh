@@ -37,7 +37,7 @@ fi
  
 # Update build and strand
 echo "== Run update_build.sh =="
-./update_build.sh $OUTPUT/$DATASTEM"_binary" $VARDATA $STRANDFILE $OUTPUT/$DATASTEM"_afterAlignment" $OUTPUT $REMOVE_MULTI | tee -a $OUTPUT/"resultsScreen.txt"
+update_build.sh $OUTPUT/$DATASTEM"_binary" $VARDATA $STRANDFILE $OUTPUT/$DATASTEM"_afterAlignment" $OUTPUT $REMOVE_MULTI | tee -a $OUTPUT/"resultsScreen.txt"
 if [ "$?" != "0" ]; then
   error_exit "Error while updating the build and strand."
 fi 
@@ -58,7 +58,7 @@ if [ "$?" != "0" ]; then
 fi
 
 echo "== Run HRC-1000G-check-bim_v4.2.7.pl =="
-perl HRC-1000G-check-bim_v4.2.7.pl -b $OUTPUT/$DATASTEM"_afterQC.bim" -f $OUTPUT/$DATASTEM"_afterQC_freq.frq" -r $FIXDATA/"HRC.r1-1.GRCh37.wgs.mac5.sites.tab" -h | tee -a $OUTPUT/"resultsScreen.txt"  
+HRC-1000G-check-bim_v4.2.7.pl -b $OUTPUT/$DATASTEM"_afterQC.bim" -f $OUTPUT/$DATASTEM"_afterQC_freq.frq" -r $FIXDATA/"HRC.r1-1.GRCh37.wgs.mac5.sites.tab" -h | tee -a $OUTPUT/"resultsScreen.txt"  
 if [ "$?" != "0" ]; then
   error_exit "Error while running the perl script."
 fi
@@ -89,7 +89,7 @@ if [ "$?" != "0" ]; then
 fi
 
 echo "== Run reportRedaction =="
-./reportRedaction.sh $OUTPUT $DATASTEM
+reportRedaction.sh $OUTPUT $DATASTEM
 if [ "$?" != "0" ]; then
   error_exit "Error while writing the report."
 fi

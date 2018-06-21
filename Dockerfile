@@ -26,8 +26,8 @@ WORKDIR /imputePrepSanger/
 RUN chmod 755 /imputePrepSanger/imputePrep_script.sh \ 
     && cp /imputePrepSanger/imputePrep_script.sh /bin/
 
-RUN chmod 755 /imputePrepSanger/HRC-1000G-check-bim_modified.pl \
-    && cp /imputePrepSanger/HRC-1000G-check-bim_modified.pl /bin/
+RUN chmod 755 /imputePrepSanger/HRC-1000G-check-bim_v4.2.7.pl \
+    && cp /imputePrepSanger/HRC-1000G-check-bim_v4.2.7.pl /bin/
 
 RUN chmod 755 /imputePrepSanger/update_build.sh \
     && cp /imputePrepSanger/update_build.sh /bin/ 

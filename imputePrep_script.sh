@@ -73,7 +73,7 @@ fi
 
 
 echo "== Run bcftools =="
-bcftools annotate -Oz --rename-chrs $FIXDATA/"ucsc2ensembl.txt" $OUTPUT/$DATASTEM"_afterQC-updated_vcf.vcf.gz" > $OUTPUT/$DATASTEM"_afterQC-updatedChr.vcf.gz"
+bcftools annotate -Oz --rename-chrs $FIXDATA/"plink2ensembl.txt" $OUTPUT/$DATASTEM"_afterQC-updated_vcf.vcf.gz" > $OUTPUT/$DATASTEM"_afterQC-updatedChr.vcf.gz"
 if [ "$?" != "0" ]; then
   error_exit "Error while renaming the chromosome."
 fi

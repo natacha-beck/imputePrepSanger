@@ -47,6 +47,14 @@ RUN wget  https://github.com/samtools/bcftools/releases/download/1.3.1/bcftools-
 
 RUN cp bcftools-1.3.1/bcftools /bin/
 
+RUN  mkdir   /fix_data \
+ && cd /fix_data \
+ && wget ftp://ngs.sanger.ac.uk/production/hrc/HRC.r1-1/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz \
+ && gunzip HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz                                           \
+ && wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz  \
+ && gunzip human_g1k_v37.fasta.gz || true                                                     \
+ && wget https://imputation.sanger.ac.uk/www/plink2ensembl.txt
+
 # b. plink 
 #RUN wget http://pngu.mgh.harvard.edu/~purcell/plink/dist/plink-1.07-x86_64.zip \
 #    &&  unzip plink-1.07-x86_64.zip

@@ -44,7 +44,7 @@ From: centos:6.9
     && wget https://imputation.sanger.ac.uk/www/plink2ensembl.txt
 
 %environment
-  PATH=$PATH:/imputePrepSanger
+  PATH=$PATH:/imputePrepSanger:/imputePrepSanger/plink
 
 %runscript
   cd /imputePrepSanger/

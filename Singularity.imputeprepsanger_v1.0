@@ -20,7 +20,7 @@ From: centos:6.9
                  which
 
   chmod 755 /imputePrepSanger
-  chmod 755 /imputePrepSanger/checkPositions.awk
+  chmod 755 /imputePrepSanger/*.awk
   chmod 755 /imputePrepSanger/update_build.sh
   chmod 755 /imputePrepSanger/imputePrep_script.sh
   chmod 755 /imputePrepSanger/HRC-1000G-check-bim_v4.2.7.pl
